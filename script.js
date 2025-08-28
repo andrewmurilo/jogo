@@ -1,3 +1,6 @@
+let gameStarted = false;
+let gameOver = false;
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -173,3 +176,71 @@ function gameLoop() {
 }
 
 gameLoop();
+
+function gameLoop() {
+  ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+  if (!gameStarted) {
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.fillText("Defesa de Torres", canvas.width / 2 - 150, canvas.height / 2 - 40);
+    ctx.font = "20px Arial";
+    ctx.fillText("Clique para começar", canvas.width / 2 - 100, canvas.height / 2);
+    return;
+  }
+
+  if (gameOver) {
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2 - 40);
+    ctx.font = "20px Arial";
+    ctx.fillText("Clique para reiniciar", canvas.width / 2 - 100, canvas.height / 2);
+    return;
+  }
+
+  // ... (restante do código do jogo)
+
+  if (lives <= 0) {
+  gameOverSound.play();
+  gameOver = true;
+  return;
+}
+
+}
+
+canvas.addEventListener("click", (e) => {
+  if (!gameStarted) {
+    gameStarted = true;
+    return;
+  }
+
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+
+  if (coins >= 50) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    towers.push(new Tower(x, y, currentTowerType));
+    coins -= 50;
+  }
+});
+
+function resetGame() {
+  enemies = [];
+  towers = [];
+  coins = 0;
+  lives = 5;
+  score = 0;
+  phase = 1;
+  enemiesDefeated = 0;
+  enemiesToDefeat = 10;
+  phaseReward = 100;
+  currentTowerType = 0;
+  spawnInterval = 2000;
+  phaseActive = true;
+  gameOver = false;
+  gameStarted = true;
+}
