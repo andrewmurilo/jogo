@@ -1,13 +1,14 @@
 body {
   margin: 0;
-  background: #222;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #222;
+  color: #fff;
+  text-align: center;
 }
 
 canvas {
-  border: 3px solid white;
-  background: #444;
+  border: 2px solid #fff;
+  background-color: #333;
+  display: block;
+  margin: 0 auto;
 }
