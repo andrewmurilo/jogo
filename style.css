@@ -1,47 +1,13 @@
-/* styles.css */
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; }
 body {
-    font-family: Arial, sans-serif;
-    background:#000; color:#fff; overflow:hidden; cursor:none;
+  margin: 0;
+  background: #222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
-.game-container { position:relative; width:100vw; height:100vh; }
-#gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
-.ui-overlay {
-    position:absolute; inset:0; pointer-events:none; z-index:10;
-}
-.status-bar {
-    position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-    background:rgba(0,0,0,.7); padding:10px 20px; border-radius:10px; border:2px solid #ff4444;
-}
-.health-bar { width:220px; height:18px; background:#333; border-radius:10px; overflow:hidden; margin-bottom:6px; }
-.health-fill { height:100%; width:100%; background:linear-gradient(90deg, #ff4444, #ff8844); transition:width .25s; }
-.noise-meter { display:flex; align-items:center; gap:10px; }
-.noise-indicator { width:18px; height:18px; border-radius:50%; background:#333; transition:background .15s, box-shadow .15s; }
-.noise-indicator.active { background:#ffcc00; box-shadow:0 0 10px #ffcc00; }
 
-.game-start, .game-over, .game-win {
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:rgba(0,0,0,.9); padding:40px; border-radius:15px; border:3px solid #ff4444;
-    text-align:center; z-index:20; max-width:92vw;
-}
-.game-start h1, .game-over h1, .game-win h1 {
-    color:#ff4444; font-size:2.2em; margin-bottom:16px; text-shadow:0 0 10px rgba(255,68,68,.5);
-}
-.game-start p, .game-over p, .game-win p { margin:10px 0; font-size:1.05em; color:#fff; }
-.controls-info { margin-top:20px; background:rgba(255,68,68,.2); padding:12px; border-radius:8px; text-align:left; }
-.controls-info h3 { color:#ffcc00; margin-bottom:8px; }
-.btn {
-    pointer-events:auto; background:#ff4444; color:#fff; border:none; padding:12px 26px; font-size:1.05em;
-    border-radius:8px; cursor:pointer; margin-top:18px; transition:background .25s;
-}
-.btn:hover { background:#ff6666; }
-.enemy-alert {
-    position:absolute; top:20px; left:50%; transform:translateX(-50%);
-    background:rgba(255,68,68,.85); padding:10px 20px; border-radius:6px; font-weight:bold; display:none; z-index:15;
-}
-.custom-cursor {
-    position:absolute; width:8px; height:8px; background:#ff4444; border-radius:50%;
-    pointer-events:none; z-index:100; transform:translate(-50%,-50%);
-    box-shadow:0 0 10px rgba(255,68,68,.7);
+canvas {
+  border: 3px solid white;
+  background: #444;
 }
