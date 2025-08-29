@@ -98,6 +98,26 @@ document.addEventListener("keydown", (e) => {
 });
 
 canvas.addEventListener("click", (e) => {
+  // ...
+});
+function getCanvasCoordinates(event) {
+  const rect = canvas.getBoundingClientRect();
+  let x, y;
+
+  if (event.touches) {
+    x = event.touches[0].clientX - rect.left;
+    y = event.touches[0].clientY - rect.top;
+  } else {
+    x = event.clientX - rect.left;
+    y = event.clientY - rect.top;
+  }
+
+  return { x, y };
+}
+
+function handleCanvasInteraction(event) {
+  event.preventDefault(); // evita zoom ou rolagem no mobile
+
   if (!gameStarted) return;
   if (gameOver) {
     resetGame();
@@ -105,13 +125,15 @@ canvas.addEventListener("click", (e) => {
   }
 
   if (coins >= 50) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const { x, y } = getCanvasCoordinates(event);
     towers.push(new Tower(x, y, currentTowerType));
     coins -= 50;
   }
-});
+}
+
+canvas.addEventListener("click", handleCanvasInteraction);
+canvas.addEventListener("touchstart", handleCanvasInteraction);
+
 
 startButton.addEventListener("click", () => {
   gameStarted = true;
