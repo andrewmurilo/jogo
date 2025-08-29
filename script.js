@@ -113,3 +113,53 @@ canvas.addEventListener("click", jump);
 canvas.addEventListener("touchstart", jump);
 
 gameLoop();
+let keys = {
+  left: false,
+  right: false,
+  jump: false
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "ArrowUp" || e.key === "w") keys.jump = true;
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+  if (e.key === "ArrowUp" || e.key === "w") keys.jump = false;
+});
+
+// Botões mobile
+document.getElementById("leftBtn").addEventListener("touchstart", () => keys.left = true);
+document.getElementById("leftBtn").addEventListener("touchend", () => keys.left = false);
+
+document.getElementById("rightBtn").addEventListener("touchstart", () => keys.right = true);
+document.getElementById("rightBtn").addEventListener("touchend", () => keys.right = false);
+
+document.getElementById("jumpBtn").addEventListener("touchstart", () => keys.jump = true);
+document.getElementById("jumpBtn").addEventListener("touchend", () => keys.jump = false);
+function updatePlayer() {
+  // Movimento horizontal
+  if (keys.left) player.x -= 5;
+  if (keys.right) player.x += 5;
+
+  // Pulo
+  if (keys.jump && player.velocityY === 0) {
+    player.velocityY = player.jumpPower;
+    keys.jump = false; // evita pulo contínuo
+  }
+
+  // Gravidade
+  player.velocityY += player.gravity;
+  player.y += player.velocityY;
+
+  // Limites da tela
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+  if (player.y + player.height > canvas.height) {
+    gameOver = true;
+  }
+}
