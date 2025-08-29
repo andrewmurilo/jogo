@@ -22,6 +22,7 @@ let score = 0;
 let gameOver = false;
 let platformSpeed = 2;
 let backgroundColor = "#d0f0ff";
+let cameraY = 0; // controle de visão
 
 let keys = { left: false, right: false };
 
@@ -58,10 +59,9 @@ function createPlatform(y) {
   const width = 80;
   const x = Math.random() * (canvas.width - width);
 
-  // Tipos de plataforma
   let type = "normal";
-  if (Math.random() < 0.1) type = "vanish"; // some após 5s
-  if (Math.random() < 0.15) type = "moving"; // plataforma móvel
+  if (Math.random() < 0.1) type = "vanish";
+  if (Math.random() < 0.1) type = "moving";
 
   let newPlat = { 
     x, 
@@ -94,10 +94,11 @@ function resetGame() {
   gameOver = false;
   platformSpeed = 2;
   backgroundColor = "#d0f0ff";
+  cameraY = 0;
   platforms = [];
   springs = [];
 
-  // Plataforma inicial
+  // Plataforma inicial embaixo do jogador
   platforms.push({
     x: player.x - 20,
     y: player.y + player.height,
@@ -109,16 +110,16 @@ function resetGame() {
     dir: 0
   });
 
-  // Criar plataformas iniciais
+  // Criar plataformas iniciais espaçadas
   let startY = player.y;
-  for (let i = 1; i <= 8; i++) {
-    createPlatform(startY - i * 80);
+  for (let i = 1; i <= 5; i++) {
+    createPlatform(startY - i * 100);
   }
 }
 
 function drawPlayer() {
   ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
 }
 
 function drawPlatforms() {
@@ -126,14 +127,14 @@ function drawPlatforms() {
     if (p.type === "vanish") ctx.fillStyle = "#ff0000";
     else if (p.type === "moving") ctx.fillStyle = "#0000ff";
     else ctx.fillStyle = "#4caf50";
-    ctx.fillRect(p.x, p.y, p.width, p.height);
+    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
   });
 }
 
 function drawSprings() {
   ctx.fillStyle = "#ff0";
   springs.forEach(s => {
-    ctx.fillRect(s.x, s.y, s.width, s.height);
+    ctx.fillRect(s.x, s.y - cameraY, s.width, s.height);
   });
 }
 
@@ -155,13 +156,12 @@ function updatePlayer() {
       player.velocityY >= 0
     ) {
       if (plat.used && plat.y > player.y) {
-        gameOver = true; // plataforma de baixo usada → morre
+        gameOver = true;
       } else {
         player.velocityY = player.jumpPower;
         plat.used = true;
         player.onPlatform = plat;
 
-        // Se for vanish → some em 5s
         if (plat.type === "vanish" && plat.vanishTime === null) {
           plat.vanishTime = Date.now();
         }
@@ -169,7 +169,6 @@ function updatePlayer() {
     }
   }
 
-  // Colisão molas
   for (let spring of springs) {
     if (
       player.x + player.width > spring.x &&
@@ -184,7 +183,12 @@ function updatePlayer() {
 
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-  if (player.y > canvas.height) gameOver = true;
+  if (player.y - cameraY > canvas.height) gameOver = true;
+
+  // CÂMERA segue o jogador sempre que sobe (inclusive pulos de mola)
+  if (player.y - cameraY < canvas.height / 3) {
+    cameraY = player.y - canvas.height / 3;
+  }
 }
 
 function updatePlatforms() {
@@ -196,22 +200,21 @@ function updatePlatforms() {
       if (p.x <= 0 || p.x + p.width >= canvas.width) p.dir *= -1;
     }
 
-    // Some após 5s se for vanish
     if (p.type === "vanish" && p.vanishTime !== null) {
       if (Date.now() - p.vanishTime > 5000) {
-        p.y = canvas.height + 100; // manda pra fora
+        p.y = canvas.height + 100;
       }
     }
   });
 
   springs.forEach(s => s.y += platformSpeed);
 
-  platforms = platforms.filter(p => p.y < canvas.height);
-  springs = springs.filter(s => s.y < canvas.height);
+  platforms = platforms.filter(p => p.y - cameraY < canvas.height);
+  springs = springs.filter(s => s.y - cameraY < canvas.height);
 
-  while (platforms.length < 8) {
+  while (platforms.length < 5) {
     let lowestY = Math.min(...platforms.map(p => p.y));
-    createPlatform(lowestY - 80);
+    createPlatform(lowestY - 100);
   }
 }
 
@@ -236,7 +239,6 @@ function gameLoop() {
 
     score++;
 
-    // Aumenta dificuldade em 500 pontos
     if (score % 500 === 0) {
       platformSpeed += 0.5;
       backgroundColor = backgroundColor === "#d0f0ff" ? "#ffe0d0" : "#d0f0ff";
