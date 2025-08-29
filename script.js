@@ -19,6 +19,35 @@ let obstacles = [];
 let gameOver = false;
 let score = 0;
 
+let keys = {
+  left: false,
+  right: false,
+  jump: false
+};
+
+// Teclado
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "ArrowUp" || e.key === "w") keys.jump = true;
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+  if (e.key === "ArrowUp" || e.key === "w") keys.jump = false;
+});
+
+// Botões mobile
+document.getElementById("leftBtn").addEventListener("touchstart", () => keys.left = true);
+document.getElementById("leftBtn").addEventListener("touchend", () => keys.left = false);
+
+document.getElementById("rightBtn").addEventListener("touchstart", () => keys.right = true);
+document.getElementById("rightBtn").addEventListener("touchend", () => keys.right = false);
+
+document.getElementById("jumpBtn").addEventListener("touchstart", () => keys.jump = true);
+document.getElementById("jumpBtn").addEventListener("touchend", () => keys.jump = false);
+
 function createObstacle() {
   const width = 60;
   const x = Math.random() * (canvas.width - width);
@@ -26,6 +55,7 @@ function createObstacle() {
 }
 
 function resetGame() {
+  player.x = 160;
   player.y = 500;
   player.velocityY = 0;
   obstacles = [];
@@ -62,8 +92,23 @@ function updateObstacles() {
 }
 
 function updatePlayer() {
+  // Movimento horizontal
+  if (keys.left) player.x -= 5;
+  if (keys.right) player.x += 5;
+
+  // Pulo
+  if (keys.jump && player.velocityY === 0) {
+    player.velocityY = player.jumpPower;
+    keys.jump = false;
+  }
+
+  // Gravidade
   player.velocityY += player.gravity;
   player.y += player.velocityY;
+
+  // Limites da tela
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
   if (player.y + player.height > canvas.height) {
     gameOver = true;
@@ -96,70 +141,23 @@ function gameLoop() {
     ctx.font = "30px Arial";
     ctx.fillText("Game Over", 100, canvas.height / 2);
     ctx.font = "20px Arial";
-    ctx.fillText("Toque ou clique para reiniciar", 60, canvas.height / 2 + 40);
+    ctx.fillText("Toque ou pressione para reiniciar", 50, canvas.height / 2 + 40);
   }
 }
 
-function jump() {
+// Reiniciar com clique ou toque
+canvas.addEventListener("click", () => {
   if (gameOver) {
     resetGame();
     gameLoop();
-  } else {
-    player.velocityY = player.jumpPower;
   }
-}
+});
 
-canvas.addEventListener("click", jump);
-canvas.addEventListener("touchstart", jump);
+canvas.addEventListener("touchstart", () => {
+  if (gameOver) {
+    resetGame();
+    gameLoop();
+  }
+});
 
 gameLoop();
-let keys = {
-  left: false,
-  right: false,
-  jump: false
-};
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
-  if (e.key === "ArrowUp" || e.key === "w") keys.jump = true;
-});
-
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
-  if (e.key === "ArrowUp" || e.key === "w") keys.jump = false;
-});
-
-// Botões mobile
-document.getElementById("leftBtn").addEventListener("touchstart", () => keys.left = true);
-document.getElementById("leftBtn").addEventListener("touchend", () => keys.left = false);
-
-document.getElementById("rightBtn").addEventListener("touchstart", () => keys.right = true);
-document.getElementById("rightBtn").addEventListener("touchend", () => keys.right = false);
-
-document.getElementById("jumpBtn").addEventListener("touchstart", () => keys.jump = true);
-document.getElementById("jumpBtn").addEventListener("touchend", () => keys.jump = false);
-function updatePlayer() {
-  // Movimento horizontal
-  if (keys.left) player.x -= 5;
-  if (keys.right) player.x += 5;
-
-  // Pulo
-  if (keys.jump && player.velocityY === 0) {
-    player.velocityY = player.jumpPower;
-    keys.jump = false; // evita pulo contínuo
-  }
-
-  // Gravidade
-  player.velocityY += player.gravity;
-  player.y += player.velocityY;
-
-  // Limites da tela
-  if (player.x < 0) player.x = 0;
-  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-
-  if (player.y + player.height > canvas.height) {
-    gameOver = true;
-  }
-}
