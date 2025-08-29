@@ -1,16 +1,13 @@
-let gameStarted = false;
-let gameOver = false;
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const startScreen = document.getElementById("startScreen");
+const startButton = document.getElementById("startButton");
 
 // Imagens
 const bgImg = new Image(); bgImg.src = "assets/images/background.png";
 const enemyImg = new Image(); enemyImg.src = "assets/images/enemy.png";
 const towerImgs = [
-  new Image(), // torre 1
-  new Image(), // torre 2
-  new Image()  // torre 3
+  new Image(), new Image(), new Image()
 ];
 towerImgs[0].src = "assets/images/tower1.png";
 towerImgs[1].src = "assets/images/tower2.png";
@@ -20,6 +17,10 @@ towerImgs[2].src = "assets/images/tower3.png";
 const shootSound = new Audio("assets/sounds/shoot.wav");
 const hitSound = new Audio("assets/sounds/hit.wav");
 const gameOverSound = new Audio("assets/sounds/gameover.wav");
+
+// Estado do jogo
+let gameStarted = false;
+let gameOver = false;
 
 // Variáveis
 let enemies = [];
@@ -97,6 +98,12 @@ document.addEventListener("keydown", (e) => {
 });
 
 canvas.addEventListener("click", (e) => {
+  if (!gameStarted) return;
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+
   if (coins >= 50) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -106,9 +113,14 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
+startButton.addEventListener("click", () => {
+  gameStarted = true;
+  startScreen.style.display = "none";
+});
+
 // Fases
 function spawnEnemy() {
-  if (phaseActive) enemies.push(new Enemy());
+  if (phaseActive && gameStarted && !gameOver) enemies.push(new Enemy());
 }
 
 setInterval(spawnEnemy, spawnInterval);
@@ -129,9 +141,42 @@ function checkPhaseProgress() {
   }
 }
 
+function resetGame() {
+  enemies = [];
+  towers = [];
+  coins = 0;
+  lives = 5;
+  score = 0;
+  phase = 1;
+  enemiesDefeated = 0;
+  enemiesToDefeat = 10;
+  phaseReward = 100;
+  currentTowerType = 0;
+  spawnInterval = 2000;
+  phaseActive = true;
+  gameOver = false;
+  gameStarted = true;
+}
+
 // Loop principal
 function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+  if (!gameStarted) {
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  if (gameOver) {
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2 - 40);
+    ctx.font = "20px Arial";
+    ctx.fillText("Clique para reiniciar", canvas.width / 2 - 100, canvas.height / 2);
+    requestAnimationFrame(gameLoop);
+    return;
+  }
 
   // HUD
   ctx.fillStyle = "#fff";
@@ -163,10 +208,7 @@ function gameLoop() {
       lives--;
       if (lives <= 0) {
         gameOverSound.play();
-        ctx.fillStyle = "white";
-        ctx.font = "40px Arial";
-        ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2);
-        return;
+        gameOver = true;
       }
     }
   }
@@ -176,71 +218,3 @@ function gameLoop() {
 }
 
 gameLoop();
-
-function gameLoop() {
-  ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-  if (!gameStarted) {
-    ctx.fillStyle = "white";
-    ctx.font = "40px Arial";
-    ctx.fillText("Defesa de Torres", canvas.width / 2 - 150, canvas.height / 2 - 40);
-    ctx.font = "20px Arial";
-    ctx.fillText("Clique para começar", canvas.width / 2 - 100, canvas.height / 2);
-    return;
-  }
-
-  if (gameOver) {
-    ctx.fillStyle = "white";
-    ctx.font = "40px Arial";
-    ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2 - 40);
-    ctx.font = "20px Arial";
-    ctx.fillText("Clique para reiniciar", canvas.width / 2 - 100, canvas.height / 2);
-    return;
-  }
-
-  // ... (restante do código do jogo)
-
-  if (lives <= 0) {
-  gameOverSound.play();
-  gameOver = true;
-  return;
-}
-
-}
-
-canvas.addEventListener("click", (e) => {
-  if (!gameStarted) {
-    gameStarted = true;
-    return;
-  }
-
-  if (gameOver) {
-    resetGame();
-    return;
-  }
-
-  if (coins >= 50) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    towers.push(new Tower(x, y, currentTowerType));
-    coins -= 50;
-  }
-});
-
-function resetGame() {
-  enemies = [];
-  towers = [];
-  coins = 0;
-  lives = 5;
-  score = 0;
-  phase = 1;
-  enemiesDefeated = 0;
-  enemiesToDefeat = 10;
-  phaseReward = 100;
-  currentTowerType = 0;
-  spawnInterval = 2000;
-  phaseActive = true;
-  gameOver = false;
-  gameStarted = true;
-}
