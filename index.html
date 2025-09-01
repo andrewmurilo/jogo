@@ -1,41 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo de Plataformas</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Tela inicial -->
-  <div id="startScreen">
-    <video autoplay muted loop id="bgVideo">
-      <source src="fundo.mp4" type="video/mp4" />
-    </video>
-    <div id="menuOverlay">
-      <h1>Escalada Extrema</h1>
-      <button id="startSolo">Iniciar Solo</button>
-      <button id="startIA">Jogar contra IA</button>
-    </div>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <button id="restartBtn">Reiniciar</button>
   </div>
-
-  <!-- Canvas do jogo -->
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- Botões de reiniciar e menu -->
-  <button id="restartBtn">Reiniciar</button>
-  <button id="menuBtn">Menu Inicial</button>
-
   <script src="script.js"></script>
-
-  <div id="startScreen">
-  <button id="startSolo">Iniciar Solo</button>
-  <button id="startIA">Jogar contra IA</button>
-</div>
-<button id="restartBtn" style="display:none;">Reiniciar</button>
-<button id="menuBtn" style="display:none;">Menu</button>
-<canvas id="gameCanvas"></canvas>
-
 </body>
 </html>

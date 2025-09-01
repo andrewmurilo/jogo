@@ -1,76 +1,37 @@
 body {
   margin: 0;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-}
-
-/* Tela inicial */
-#startScreen {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  background: linear-gradient(to top, #87ceeb, #ffffff);
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
 }
 
-#bgVideo {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(8px) brightness(0.7);
-}
-
-#menuOverlay {
+#gameContainer {
   position: relative;
-  z-index: 2;
-  text-align: center;
-  color: white;
 }
 
-#menuOverlay h1 {
-  font-size: 36px;
-  margin-bottom: 20px;
-}
-
-#menuOverlay button {
-  font-size: 20px;
-  margin: 10px;
-  padding: 15px 30px;
-  border: none;
-  border-radius: 10px;
-  background-color: #ff9800;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-#menuOverlay button:hover {
-  background-color: #fb8c00;
-}
-
-/* Canvas do jogo */
 canvas {
+  background: #e0f7fa;
+  border: 2px solid #000;
   display: block;
-  margin: auto;
-  background-color: #e0f7fa;
 }
 
-/* Botões de reiniciar e menu */
-#restartBtn, #menuBtn {
-  position: fixed;
-  bottom: 20px;
+#restartBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: 20px;
   padding: 10px 20px;
+  display: none;
   border: none;
-  border-radius: 10px;
-  background-color: #ff5722;
+  border-radius: 8px;
+  background: #ff5722;
   color: white;
   cursor: pointer;
-  display: none;
-  z-index: 10;
 }
 
-#restartBtn { left: 50%; transform: translateX(-120%); }
-#menuBtn { left: 50%; transform: translateX(20%); }
+#restartBtn:hover {
+  background: #e64a19;
+}
