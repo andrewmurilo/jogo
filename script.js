@@ -22,7 +22,8 @@ let score = 0;
 let gameOver = false;
 let platformSpeed = 2;
 let backgroundColor = "#d0f0ff";
-let cameraY = 0; // controle de visão
+let cameraY = 0; // câmera
+let targetCameraY = 0; // alvo da câmera
 
 let keys = { left: false, right: false };
 
@@ -95,6 +96,7 @@ function resetGame() {
   platformSpeed = 2;
   backgroundColor = "#d0f0ff";
   cameraY = 0;
+  targetCameraY = 0;
   platforms = [];
   springs = [];
 
@@ -185,10 +187,12 @@ function updatePlayer() {
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
   if (player.y - cameraY > canvas.height) gameOver = true;
 
-  // CÂMERA segue o jogador sempre que sobe (inclusive pulos de mola)
-  if (player.y - cameraY < canvas.height / 3) {
-    cameraY = player.y - canvas.height / 3;
-  }
+  // Definir posição alvo da câmera (ponto fixo acima do jogador)
+  targetCameraY = player.y - canvas.height * 0.6; // 60% da tela fica abaixo do jogador
+  if (targetCameraY < 0) targetCameraY = 0;
+
+  // Interpolação suave (acompanhando rápido quando jogador sobe muito)
+  cameraY += (targetCameraY - cameraY) * 0.2;
 }
 
 function updatePlatforms() {
