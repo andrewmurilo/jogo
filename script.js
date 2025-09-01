@@ -66,7 +66,7 @@ window.addEventListener("deviceorientation", (e) => {
 
 // Criar plataforma
 function createPlatform(x, y, type = "normal") {
-  let hasSpring = Math.random() < 0.25; // 25% de chance
+  let hasSpring = Math.random() < 0.25; // 25% de chance de mola
   return { x, y, width: 70, height: 15, type, dx: type === "moving" ? 2 : 0, hasSpring };
 }
 
@@ -125,7 +125,7 @@ function updatePlayer() {
         player.lastPlatform = p;
       }
 
-      // Nuvem some sempre
+      // Nuvem some
       if (p.type === "cloud") {
         platforms = platforms.filter((pl) => pl !== p);
       }
