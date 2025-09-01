@@ -66,15 +66,8 @@ window.addEventListener("deviceorientation", (e) => {
 
 // Criar plataforma
 function createPlatform(x, y, type = "normal") {
-  return {
-    x,
-    y,
-    width: 70,
-    height: 15,
-    type,
-    dx: type === "moving" ? 2 : 0,
-    hasSpring: Math.random() < 0.2, // 20% de chance de ter mola
-  };
+  let hasSpring = Math.random() < 0.25; // 25% de chance
+  return { x, y, width: 70, height: 15, type, dx: type === "moving" ? 2 : 0, hasSpring };
 }
 
 // Resetar jogo
@@ -112,7 +105,6 @@ function updatePlayer() {
   player.velocityY += player.gravity;
   player.y += player.velocityY;
 
-  // Colisão com plataformas
   platforms.forEach((p) => {
     if (
       player.x < p.x + p.width &&
@@ -121,11 +113,11 @@ function updatePlayer() {
       player.y + player.height < p.y + p.height + 10 &&
       player.velocityY > 0
     ) {
-      // Verifica se caiu em cima da mola
+      // Super pulo se tiver mola
       if (p.hasSpring && player.x + player.width / 2 > p.x + p.width / 2 - 10 && player.x + player.width / 2 < p.x + p.width / 2 + 10) {
-        player.velocityY = -18; // super pulo da mola
+        player.velocityY = -18;
       } else {
-        player.velocityY = player.jumpPower; // pulo normal
+        player.velocityY = player.jumpPower;
       }
 
       if (player.lastPlatform !== p) {
@@ -133,8 +125,9 @@ function updatePlayer() {
         player.lastPlatform = p;
       }
 
+      // Nuvem some sempre
       if (p.type === "cloud") {
-        platforms = platforms.filter((pl) => pl !== p); // nuvem some
+        platforms = platforms.filter((pl) => pl !== p);
       }
     }
   });
@@ -153,9 +146,7 @@ function updatePlatforms() {
   platforms.forEach((p) => {
     if (p.type === "moving") {
       p.x += p.dx;
-      if (p.x <= 0 || p.x + p.width >= canvas.width) {
-        p.dx *= -1;
-      }
+      if (p.x <= 0 || p.x + p.width >= canvas.width) p.dx *= -1;
     }
   });
 
@@ -164,11 +155,8 @@ function updatePlatforms() {
   while (platforms.length < 10) {
     let px = Math.random() * (canvas.width - 70);
     let py = platforms[platforms.length - 1].y - 80;
-
-    // Nuvens só aparecem após 2500 pontos
     let types = score >= 2500 ? ["normal", "moving", "cloud"] : ["normal", "moving"];
     let type = types[Math.floor(Math.random() * types.length)];
-
     platforms.push(createPlatform(px, py, type));
   }
 }
@@ -188,7 +176,7 @@ function drawPlatforms() {
 
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
-    // Desenha mola (quadradinho preto em cima da plataforma)
+    // Mola visível
     if (p.hasSpring) {
       ctx.fillStyle = "#000";
       ctx.fillRect(p.x + p.width / 2 - 10, p.y - 12 - cameraY, 20, 12);
