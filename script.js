@@ -143,9 +143,10 @@ function updatePlayer(){
     });
 
     if(player.y-cameraY>canvas.height) falling=true;
+
     // Atualizar câmera suavemente
     if(player.y - cameraY < canvas.height/2){
-        cameraY += (player.y - canvas.height/2 - cameraY) * 0.1;
+        cameraY = player.y - canvas.height/2;
     }
 }
 
@@ -194,18 +195,21 @@ function updatePlatforms(){
 }
 
 // Spawn contínuo de plataformas
-function spawnPlatforms(){
-    let minY = Math.min(...platforms.map(p=>p.y));
-    while(minY > cameraY - 200){ // spawn acima da visão atual
-        let px = Math.random()*(canvas.width-70);
-        let py = minY - 80 - Math.random()*20;
+function spawnPlatforms() {
+    // Mantemos no mínimo 10 plataformas na tela
+    while (platforms.length < 10) {
+        let px = Math.random() * (canvas.width - 70);
+        let minY = Math.min(...platforms.map(p => p.y));
+        let py = minY - 80 - Math.random() * 40;
+
         let types;
-        if(level===1) types=["normal","normal","moving"];
-        else if(level===2) types=["normal","moving","temporary"];
-        else types=["moving","temporary","temporary"];
-        let type = types[Math.floor(Math.random()*types.length)];
-        platforms.push(createPlatform(px,py,type));
-        minY = py;
+        if (level === 1) types = ["normal", "normal", "moving"];
+        else if (level === 2) types = ["normal", "moving", "temporary"];
+        else types = ["moving", "temporary", "temporary"];
+
+        let type = types[Math.floor(Math.random() * types.length)];
+
+        platforms.push(createPlatform(px, py, type));
     }
 }
 
@@ -223,7 +227,6 @@ function drawPlatforms(){
         if(p.type==="temporary") ctx.fillStyle="#ff9800";
         ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
 
-        // Mola animada
         if(p.hasSpring){
             let springHeight = 10 * p.springScale;
             ctx.fillStyle="#000";
