@@ -19,6 +19,7 @@ let platforms = [];
 let score = 0;
 let gameOver = false;
 let cameraY = 0;
+let level = 1;
 
 // Botão de restart
 const restartBtn = document.getElementById("restartBtn");
@@ -62,7 +63,7 @@ function createPlatform(x, y, type = "normal") {
     type,
     dx: type === "moving" ? 2 : 0,
     timer: type === "temporary" ? 300 : null,
-    hasSpring: Math.random() < 0.2 && type !== "temporary", // mola não spawna na temporária
+    hasSpring: Math.random() < 0.2 && type !== "temporary",
   };
 }
 
@@ -74,6 +75,7 @@ function resetGame() {
   score = 0;
   gameOver = false;
   cameraY = 0;
+  level = 1;
 
   platforms = [];
   platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal")); // inicial fixa
@@ -152,7 +154,17 @@ function updatePlatforms() {
   while (platforms.length < 10) {
     let px = Math.random() * (canvas.width - 70);
     let py = platforms[platforms.length - 1].y - 80;
-    let types = ["normal", "moving", "temporary"];
+
+    // Probabilidade muda conforme level
+    let types;
+    if (level === 1) {
+      types = ["normal", "normal", "moving"];
+    } else if (level === 2) {
+      types = ["normal", "moving", "temporary"];
+    } else if (level >= 3) {
+      types = ["moving", "temporary", "temporary"];
+    }
+
     let type = types[Math.floor(Math.random() * types.length)];
     platforms.push(createPlatform(px, py, type));
   }
@@ -179,11 +191,24 @@ function drawPlatforms() {
   });
 }
 
-// Desenhar pontuação
-function drawScore() {
+// Desenhar pontuação e level
+function drawHUD() {
   ctx.fillStyle = "#000";
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 10, 30);
+  ctx.fillText("Level: " + level, 10, 55);
+}
+
+// Fundo dinâmico
+function drawBackground() {
+  if (level === 1) {
+    ctx.fillStyle = "#e0f7fa"; // azul claro
+  } else if (level === 2) {
+    ctx.fillStyle = "#ffe0b2"; // laranja claro
+  } else if (level >= 3) {
+    ctx.fillStyle = "#d1c4e9"; // roxo claro
+  }
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 // Loop principal
@@ -191,12 +216,17 @@ function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!gameOver) {
+    // Mudança de fase a cada 500 pontos
+    if (score >= 500 && level === 1) level = 2;
+    if (score >= 1000 && level === 2) level = 3;
+
+    drawBackground();
     updatePlayer();
     updatePlatforms();
 
     drawPlayer();
     drawPlatforms();
-    drawScore();
+    drawHUD();
 
     score++;
     requestAnimationFrame(gameLoop);
