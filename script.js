@@ -248,4 +248,84 @@ function drawStartScreen() {
   startBtn.style.display = "block";
 }
 
+// Criar plataforma
+function createPlatform(x, y, type = "normal") {
+  return {
+    x,
+    y,
+    width: 70,
+    height: 15,
+    type,
+    dx: type === "moving" ? 2 : 0,
+    timer: type === "temporary" ? 300 : null,
+    hasSpring: Math.random() < 0.2 && type !== "temporary", // 20% chance de ter mola
+  };
+}
+
+// Atualizar jogador
+function updatePlayer() {
+  // Movimento horizontal
+  if (keys.left) player.x -= 4;
+  if (keys.right) player.x += 4;
+
+  // Wrap lateral
+  if (player.x + player.width < 0) player.x = canvas.width;
+  if (player.x > canvas.width) player.x = -player.width;
+
+  // Gravidade
+  player.velocityY += player.gravity;
+  player.y += player.velocityY;
+
+  // Colisão com plataformas
+  platforms.forEach((p) => {
+    if (
+      player.x < p.x + p.width &&
+      player.x + player.width > p.x &&
+      player.y + player.height > p.y &&
+      player.y + player.height < p.y + p.height + 10 &&
+      player.velocityY > 0
+    ) {
+      player.velocityY = player.jumpPower;
+
+      // Se tiver mola, pulo especial
+      if (p.hasSpring) {
+        player.velocityY = -18; // super pulo 🚀
+      }
+
+      // Se for nuvem, ela some depois do pulo
+      if (p.type === "cloud") {
+        platforms = platforms.filter((pl) => pl !== p);
+      }
+    }
+  });
+
+  // Se cair
+  if (player.y - cameraY > canvas.height) {
+    gameOver = true;
+  }
+
+  // Limite superior da câmera
+  if (player.y < canvas.height / 2 - cameraY) {
+    cameraY = player.y - canvas.height / 2;
+  }
+}
+
+// Desenhar plataformas
+function drawPlatforms() {
+  platforms.forEach((p) => {
+    if (p.type === "normal") ctx.fillStyle = "#4caf50";
+    if (p.type === "moving") ctx.fillStyle = "#2196f3";
+    if (p.type === "temporary") ctx.fillStyle = "#ff9800";
+    if (p.type === "cloud") ctx.fillStyle = "#ccc";
+    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+
+    // Desenha a mola
+    if (p.hasSpring) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(p.x + p.width / 2 - 5, p.y - 10 - cameraY, 10, 10);
+    }
+  });
+}
+
+
 drawStartScreen();
