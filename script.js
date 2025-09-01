@@ -73,7 +73,20 @@ menuBtn.addEventListener("click", ()=>{
 
 // Criar plataforma
 function createPlatform(x,y,type="normal") {
-    return { x,y,width:70,height:15,type,dx:type==="moving"?2:0,timer:type==="temporary"?300:null,hasSpring:Math.random()<0.2 && type!=="temporary" };
+    return {
+        x,
+        y,
+        width:70,
+        height:15,
+        type,
+        dx:type==="moving"?2:0,
+        timer:type==="temporary"?300:null,
+        hasSpring:Math.random()<0.2 && type!=="temporary",
+        springPressed:false,  
+        springScale:1,        
+        visited:false,
+        targetY:y
+    };
 }
 
 // Reset jogo normal
@@ -105,10 +118,26 @@ function updatePlayer(){
     player.velocityY+=player.gravity; player.y+=player.velocityY;
 
     platforms.forEach(p=>{
-        if(player.x< p.x+p.width && player.x+player.width>p.x &&
-           player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.velocityY>0){
-            if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);}
-            player.velocityY=player.jumpPower; if(p.hasSpring) player.velocityY=-18;
+        if(player.x< p.x+p.width &&
+           player.x+player.width>p.x &&
+           player.y+player.height>p.y &&
+           player.y+player.height<p.y+p.height+10 &&
+           player.velocityY>0){
+
+            if(p.type==="temporary"){ 
+                p.timer--; 
+                if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);
+            }
+
+            // Salto
+            player.velocityY=player.jumpPower;
+            if(p.hasSpring){
+                player.velocityY=-18;
+                p.springPressed=true;
+            }
+
+            // Pontuação só se ainda não visitada
+            if(!p.visited){ score += 10; p.visited=true; }
         }
     });
 
@@ -137,17 +166,42 @@ function updateIA(){
 // Atualizar plataformas
 function updatePlatforms(){
     platforms.forEach(p=>{
+        // Movendo horizontal
         if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; }
+
+        // Temporária
         if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p); }
+
+        // Molas animadas
+        if(p.hasSpring){
+            if(p.springPressed){
+                p.springScale = Math.max(0.6, p.springScale - 0.1);
+                if(p.springScale <= 0.6) p.springPressed=false;
+            } else {
+                p.springScale += 0.05;
+                if(p.springScale>1) p.springScale=1;
+            }
+        }
+
+        // Suavização vertical (opcional)
+        p.y += (p.targetY - p.y)*0.1;
     });
-    while(platforms.length<10){
-        let px=Math.random()*(canvas.width-70);
-        let py=platforms[platforms.length-1].y-80;
+    spawnPlatforms();
+}
+
+// Spawn contínuo de plataformas
+function spawnPlatforms(){
+    let lastY = Math.min(...platforms.map(p=>p.y));
+    while(platforms.length < 10){
+        let px = Math.random()*(canvas.width-70);
+        let py = lastY - 80 - Math.random()*20;
         let types;
         if(level===1) types=["normal","normal","moving"];
         else if(level===2) types=["normal","moving","temporary"];
         else types=["moving","temporary","temporary"];
-        platforms.push(createPlatform(px,py,types[Math.floor(Math.random()*types.length)]));
+        let type = types[Math.floor(Math.random()*types.length)];
+        platforms.push(createPlatform(px,py,type));
+        lastY = py;
     }
 }
 
@@ -164,7 +218,13 @@ function drawPlatforms(){
         if(p.type==="moving") ctx.fillStyle="#2196f3";
         if(p.type==="temporary") ctx.fillStyle="#ff9800";
         ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-        if(p.hasSpring){ ctx.fillStyle="#000"; ctx.fillRect(p.x+p.width/2-5,p.y-10-cameraY,10,10);}
+
+        // Mola animada
+        if(p.hasSpring){
+            let springHeight = 10 * p.springScale;
+            ctx.fillStyle="#000";
+            ctx.fillRect(p.x + p.width/2 - 5, p.y - springHeight - cameraY, 10, springHeight);
+        }
     });
 }
 
@@ -193,7 +253,7 @@ function gameLoop(){
         if(!pontosInfinitos && score>=150000 && !faseIA){ unlockIA=true; gameOver=true; }
 
         drawBackground();
-        if(!falling){ updatePlayer(); updatePlatforms(); if(faseIA) updateIA(); score++; }
+        if(!falling){ updatePlayer(); updatePlatforms(); if(faseIA) updateIA(); }
         else { score-=5; if(score<=0){ score=0; gameOver=true; } }
 
         drawEntities(); drawPlatforms(); drawHUD();
