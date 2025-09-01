@@ -18,15 +18,19 @@ let player = {
 let platforms = [];
 let score = 0;
 let gameOver = false;
-let falling = false; // se está em queda
 let cameraY = 0;
-let level = 1;
+let gameStarted = false;
+let falling = false;
 
-// Botão de restart
+// Botões
 const restartBtn = document.getElementById("restartBtn");
+const startBtn = document.getElementById("startBtn");
 restartBtn.addEventListener("click", () => {
   resetGame();
   gameLoop();
+});
+startBtn.addEventListener("click", () => {
+  startGame();
 });
 
 // Controles no PC
@@ -64,7 +68,7 @@ function createPlatform(x, y, type = "normal") {
     type,
     dx: type === "moving" ? 2 : 0,
     timer: type === "temporary" ? 300 : null,
-    hasSpring: Math.random() < 0.2 && type !== "temporary",
+    used: false,
   };
 }
 
@@ -75,9 +79,8 @@ function resetGame() {
   player.velocityY = 0;
   score = 0;
   gameOver = false;
-  falling = false;
   cameraY = 0;
-  level = 1;
+  falling = false;
 
   platforms = [];
   platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal")); // inicial fixa
@@ -85,7 +88,7 @@ function resetGame() {
   for (let i = 1; i < 7; i++) {
     let px = Math.random() * (canvas.width - 70);
     let py = canvas.height - i * 100;
-    let types = ["normal", "moving", "temporary"];
+    let types = ["normal", "moving", "temporary", "cloud"];
     let type = types[Math.floor(Math.random() * types.length)];
     platforms.push(createPlatform(px, py, type));
   }
@@ -93,10 +96,16 @@ function resetGame() {
   restartBtn.style.display = "none";
 }
 
+// Iniciar jogo
+function startGame() {
+  gameStarted = true;
+  startBtn.style.display = "none";
+  resetGame();
+  gameLoop();
+}
+
 // Atualizar jogador
 function updatePlayer() {
-  if (falling) return; // se já caiu, não controla mais o player
-
   // Movimento horizontal
   if (keys.left) player.x -= 4;
   if (keys.right) player.x += 4;
@@ -124,20 +133,28 @@ function updatePlayer() {
           platforms = platforms.filter((pl) => pl !== p);
         }
       }
+      if (p.type === "cloud" && !p.used) {
+        p.used = true;
+        setTimeout(() => {
+          platforms = platforms.filter((pl) => pl !== p);
+        }, 200); // some rápido após uso
+      }
       player.velocityY = player.jumpPower;
-      if (p.hasSpring) player.velocityY = -18;
     }
   });
 
-  // Se cair da tela
+  // Se cair
   if (player.y - cameraY > canvas.height) {
-    falling = true;
+    gameOver = true;
   }
 
   // Limite superior da câmera
   if (player.y < canvas.height / 2 - cameraY) {
     cameraY = player.y - canvas.height / 2;
   }
+
+  // Detecta se está caindo
+  falling = player.velocityY > 5;
 }
 
 // Atualizar plataformas
@@ -158,17 +175,7 @@ function updatePlatforms() {
   while (platforms.length < 10) {
     let px = Math.random() * (canvas.width - 70);
     let py = platforms[platforms.length - 1].y - 80;
-
-    // Probabilidade muda conforme level
-    let types;
-    if (level === 1) {
-      types = ["normal", "normal", "moving"];
-    } else if (level === 2) {
-      types = ["normal", "moving", "temporary"];
-    } else if (level >= 3) {
-      types = ["moving", "temporary", "temporary"];
-    }
-
+    let types = ["normal", "moving", "temporary", "cloud"];
     let type = types[Math.floor(Math.random() * types.length)];
     platforms.push(createPlatform(px, py, type));
   }
@@ -186,33 +193,16 @@ function drawPlatforms() {
     if (p.type === "normal") ctx.fillStyle = "#4caf50";
     if (p.type === "moving") ctx.fillStyle = "#2196f3";
     if (p.type === "temporary") ctx.fillStyle = "#ff9800";
+    if (p.type === "cloud") ctx.fillStyle = "#ddd"; // nuvem cinza clara
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
-
-    if (p.hasSpring) {
-      ctx.fillStyle = "#000";
-      ctx.fillRect(p.x + p.width / 2 - 5, p.y - 10 - cameraY, 10, 10);
-    }
   });
 }
 
-// Desenhar pontuação e level
-function drawHUD() {
+// Desenhar pontuação
+function drawScore() {
   ctx.fillStyle = "#000";
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 10, 30);
-  ctx.fillText("Level: " + level, 10, 55);
-}
-
-// Fundo dinâmico
-function drawBackground() {
-  if (level === 1) {
-    ctx.fillStyle = "#e0f7fa"; // azul claro
-  } else if (level === 2) {
-    ctx.fillStyle = "#ffe0b2"; // laranja claro
-  } else if (level >= 3) {
-    ctx.fillStyle = "#d1c4e9"; // roxo claro
-  }
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 // Loop principal
@@ -220,28 +210,21 @@ function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!gameOver) {
-    // Mudança de fase a cada 500 pontos
-    if (score >= 500 && level === 1) level = 2;
-    if (score >= 1000 && level === 2) level = 3;
-
-    drawBackground();
-
-    if (!falling) {
-      updatePlayer();
-      updatePlatforms();
-      score++;
-    } else {
-      // Quando cair → score começa a cair
-      score -= 5;
-      if (score <= 0) {
-        score = 0;
-        gameOver = true;
-      }
-    }
+    updatePlayer();
+    updatePlatforms();
 
     drawPlayer();
     drawPlatforms();
-    drawHUD();
+    drawScore();
+
+    // Score sobe com o jogo
+    score++;
+
+    // Se cair, a pontuação vai caindo rápido
+    if (falling && score > 0) {
+      score -= 3;
+      if (score < 0) score = 0;
+    }
 
     requestAnimationFrame(gameLoop);
   } else {
@@ -252,5 +235,14 @@ function gameLoop() {
   }
 }
 
-resetGame();
-gameLoop();
+// Tela inicial
+function drawStartScreen() {
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fff";
+  ctx.font = "28px Arial";
+  ctx.fillText("Jump Game", canvas.width / 2 - 70, canvas.height / 2 - 40);
+  startBtn.style.display = "block";
+}
+
+drawStartScreen();
