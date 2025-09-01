@@ -4,7 +4,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = 360;
 canvas.height = 640;
 
-// Jogador
+// Player
 let player = { x: 180, y: 560, width: 40, height: 40, color: "#ff5722", velocityY: 0, gravity: 0.4, jumpPower: -10 };
 
 // IA
@@ -31,8 +31,8 @@ const menuBtn = document.getElementById("menuBtn");
 
 // Controles PC
 let keys = { left: false, right: false };
-document.addEventListener("keydown", (e) => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=true; if(e.key==="ArrowRight"||e.key==="d") keys.right=true; });
-document.addEventListener("keyup", (e) => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=false; if(e.key==="ArrowRight"||e.key==="d") keys.right=false; });
+document.addEventListener("keydown", e => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=true; if(e.key==="ArrowRight"||e.key==="d") keys.right=true; });
+document.addEventListener("keyup", e => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=false; if(e.key==="ArrowRight"||e.key==="d") keys.right=false; });
 
 // Controles celular (inclinação)
 window.addEventListener("deviceorientation",(e)=>{ keys.right=e.gamma>5; keys.left=e.gamma<-5; });
@@ -82,8 +82,8 @@ function createPlatform(x,y,type="normal") {
         dx:type==="moving"?2:0,
         timer:type==="temporary"?300:null,
         hasSpring:Math.random()<0.2 && type!=="temporary",
-        springPressed:false,  
-        springScale:1,        
+        springPressed:false,
+        springScale:1,
         visited:false,
         targetY:y
     };
@@ -130,24 +130,15 @@ function updatePlayer(){
                 if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);
             }
 
-            // Salto
             player.velocityY=player.jumpPower;
-            if(p.hasSpring){
-                player.velocityY=-18;
-                p.springPressed=true;
-            }
+            if(p.hasSpring){ player.velocityY=-18; p.springPressed=true; }
 
-            // Pontuação só se ainda não visitada
             if(!p.visited){ score += 10; p.visited=true; }
         }
     });
 
     if(player.y-cameraY>canvas.height) falling=true;
-
-    // Atualizar câmera suavemente
-    if(player.y - cameraY < canvas.height/2){
-        cameraY = player.y - canvas.height/2;
-    }
+    if(player.y - cameraY < canvas.height/2){ cameraY = player.y - canvas.height/2; }
 }
 
 // Atualizar IA
@@ -171,24 +162,12 @@ function updateIA(){
 // Atualizar plataformas
 function updatePlatforms(){
     platforms.forEach(p=>{
-        // Movendo horizontal
         if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; }
-
-        // Temporária
         if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p); }
-
-        // Molas animadas
         if(p.hasSpring){
-            if(p.springPressed){
-                p.springScale = Math.max(0.6, p.springScale - 0.1);
-                if(p.springScale <= 0.6) p.springPressed=false;
-            } else {
-                p.springScale += 0.05;
-                if(p.springScale>1) p.springScale=1;
-            }
+            if(p.springPressed){ p.springScale = Math.max(0.6, p.springScale - 0.1); if(p.springScale <= 0.6) p.springPressed=false; }
+            else { p.springScale += 0.05; if(p.springScale>1) p.springScale=1; }
         }
-
-        // Suavização vertical
         p.y += (p.targetY - p.y)*0.1;
     });
     spawnPlatforms();
@@ -196,19 +175,15 @@ function updatePlatforms(){
 
 // Spawn contínuo de plataformas
 function spawnPlatforms() {
-    // Mantemos no mínimo 10 plataformas na tela
     while (platforms.length < 10) {
         let px = Math.random() * (canvas.width - 70);
         let minY = Math.min(...platforms.map(p => p.y));
         let py = minY - 80 - Math.random() * 40;
-
         let types;
         if (level === 1) types = ["normal", "normal", "moving"];
         else if (level === 2) types = ["normal", "moving", "temporary"];
         else types = ["moving", "temporary", "temporary"];
-
         let type = types[Math.floor(Math.random() * types.length)];
-
         platforms.push(createPlatform(px, py, type));
     }
 }
@@ -226,7 +201,6 @@ function drawPlatforms(){
         if(p.type==="moving") ctx.fillStyle="#2196f3";
         if(p.type==="temporary") ctx.fillStyle="#ff9800";
         ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-
         if(p.hasSpring){
             let springHeight = 10 * p.springScale;
             ctx.fillStyle="#000";
@@ -290,4 +264,5 @@ function gameLoop(){
     }
 }
 
+// Iniciar
 resetGame();
