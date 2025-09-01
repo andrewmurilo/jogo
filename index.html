@@ -1,16 +1,31 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo de Plataformas</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Escalada Extrema</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="gameContainer">
-    <canvas id="gameCanvas"></canvas>
-    <button id="restartBtn">Reiniciar</button>
+
+<!-- Tela inicial -->
+<div id="startScreen">
+  <video id="bgVideo" autoplay loop muted>
+    <source src="fundo.mp4" type="video/mp4">
+  </video>
+  <div id="startOverlay">
+    <h1>Escalada Extrema</h1>
+    <button id="startSolo">Iniciar Solo</button>
+    <button id="startIA">Jogar contra IA</button>
   </div>
-  <script src="script.js"></script>
+</div>
+
+<!-- Canvas do jogo -->
+<canvas id="gameCanvas"></canvas>
+
+<!-- Botão restart -->
+<button id="restartBtn">Reiniciar</button>
+
+<script src="script.js"></script>
 </body>
 </html>

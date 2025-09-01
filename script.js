@@ -20,22 +20,44 @@ let cameraY = 0;
 let level = 1;
 let unlockIA = false;
 let faseIA = false;
+let pontosInfinitos = false;
 
-// Botão restart
+// HTML elementos
+const startScreen = document.getElementById("startScreen");
+const startSoloBtn = document.getElementById("startSolo");
+const startIABtn = document.getElementById("startIA");
 const restartBtn = document.getElementById("restartBtn");
-restartBtn.addEventListener("click", () => {
-    if (faseIA) startFaseIA();
-    else resetGame();
-    gameLoop();
-});
 
 // Controles PC
 let keys = { left: false, right: false };
 document.addEventListener("keydown", (e) => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=true; if(e.key==="ArrowRight"||e.key==="d") keys.right=true; });
 document.addEventListener("keyup", (e) => { if(e.key==="ArrowLeft"||e.key==="a") keys.left=false; if(e.key==="ArrowRight"||e.key==="d") keys.right=false; });
 
-// Controles celular
+// Controles celular (inclinação)
 window.addEventListener("deviceorientation",(e)=>{ keys.right=e.gamma>5; keys.left=e.gamma<-5; });
+
+// Iniciar Solo
+startSoloBtn.addEventListener("click", ()=>{
+    startScreen.style.display = "none";
+    pontosInfinitos = true;
+    resetGame();
+    gameLoop();
+});
+
+// Iniciar IA
+startIABtn.addEventListener("click", ()=>{
+    startScreen.style.display = "none";
+    faseIA = true; unlockIA = true;
+    startFaseIA();
+    gameLoop();
+});
+
+// Botão reiniciar
+restartBtn.addEventListener("click", ()=>{
+    if(faseIA) startFaseIA();
+    else resetGame();
+    gameLoop();
+});
 
 // Criar plataforma
 function createPlatform(x,y,type="normal") {
@@ -54,7 +76,7 @@ function resetGame() {
         platforms.push(createPlatform(px,py,types[Math.floor(Math.random()*types.length)]));
     }
     restartBtn.style.display="none";
-    faseIA=false; unlockIA=false;
+    faseIA=false; unlockIA=false; pontosInfinitos=false;
 }
 
 // Iniciar fase IA
@@ -81,25 +103,21 @@ function updatePlayer(){
     if(player.y<canvas.height/2-cameraY) cameraY=player.y-canvas.height/2;
 }
 
-// Atualizar IA (mais inteligente)
+// Atualizar IA
 function updateIA(){
-    // Pegar próxima plataforma acima da IA
     let candidates = platforms.filter(p=>p.y<ia.y);
     if(candidates.length>0){
         let target = candidates.reduce((prev,curr)=>curr.y>prev.y?curr:prev,candidates[0]);
         if(ia.x+ia.width/2 < target.x+target.width/2) ia.x+=3;
         else if(ia.x+ia.width/2>target.x+target.width/2) ia.x-=3;
     }
-
     ia.velocityY+=ia.gravity; ia.y+=ia.velocityY;
-
     platforms.forEach(p=>{
         if(ia.x<p.x+p.width && ia.x+ia.width>p.x &&
            ia.y+ia.height>p.y && ia.y+ia.height<p.y+p.height+10 && ia.velocityY>0){
             ia.velocityY=ia.jumpPower; if(p.hasSpring) ia.velocityY=-18; iaScore++;
         }
     });
-
     if(ia.y-cameraY>canvas.height) gameOver=true;
 }
 
@@ -109,7 +127,6 @@ function updatePlatforms(){
         if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; }
         if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p); }
     });
-
     while(platforms.length<10){
         let px=Math.random()*(canvas.width-70);
         let py=platforms[platforms.length-1].y-80;
@@ -160,7 +177,7 @@ function gameLoop(){
     if(!gameOver){
         if(score>=500 && level===1) level=2;
         if(score>=1000 && level===2) level=3;
-        if(score>=150000 && !faseIA){ unlockIA=true; gameOver=true; }
+        if(!pontosInfinitos && score>=150000 && !faseIA){ unlockIA=true; gameOver=true; }
 
         drawBackground();
         if(!falling){ updatePlayer(); updatePlatforms(); if(faseIA) updateIA(); score++; }
@@ -183,4 +200,3 @@ function gameLoop(){
 }
 
 resetGame();
-gameLoop();
