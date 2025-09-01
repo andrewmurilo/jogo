@@ -1,245 +1,245 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 360;
-canvas.height = 640;
+canvas.width = 400;
+canvas.height = 600;
 
-// ===== VARIÁVEIS DO JOGADOR =====
+// Player
 let player = {
-  x: 160,
-  y: 500,
-  width: 40,
-  height: 40,
-  color: "#ff5722",
+  x: canvas.width / 2 - 15,
+  y: canvas.height - 60,
+  width: 30,
+  height: 30,
   velocityY: 0,
   gravity: 0.4,
   jumpPower: -10,
   onGround: false,
 };
 
-// ===== PLATAFORMAS / MOLAS =====
 let platforms = [];
+let springs = [];
+let cameraY = 0;
 let score = 0;
 let gameOver = false;
-let cameraY = 0;
+let highestPlatformY = canvas.height;
+let usedPlatforms = new Set();
 
-// Tipos de plataformas
-const PLATFORM_TYPES = {
-  NORMAL: "normal",
-  MOVING: "moving",
-  TEMP: "temporary",
-  NORMAL_SPRING: "normalSpring",
-  MOVING_SPRING: "movingSpring"
-};
+// Controles
+let keys = { left: false, right: false };
 
-// ===== FUNÇÃO CRIAR PLATAFORMAS =====
-function createPlatform(x, y, type = PLATFORM_TYPES.NORMAL) {
+// Eventos teclado
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+});
+
+// Mobile - giroscópio
+if (window.DeviceOrientationEvent) {
+  window.addEventListener("deviceorientation", (event) => {
+    let tilt = event.gamma;
+    if (tilt < -5) {
+      keys.left = true;
+      keys.right = false;
+    } else if (tilt > 5) {
+      keys.right = true;
+      keys.left = false;
+    } else {
+      keys.left = false;
+      keys.right = false;
+    }
+  });
+}
+
+// Criar plataformas
+function createPlatform(x, y, type = "normal") {
   let platform = {
     x,
     y,
     width: 80,
     height: 15,
     type,
-    dx: type.includes("moving") ? (Math.random() < 0.5 ? 1 : -1) * 2 : 0,
-    timer: type === PLATFORM_TYPES.TEMP ? 300 : null,
-    hasSpring: type.includes("Spring"),
+    dx: type === "moving" ? 2 : 0,
+    timer: 0,
+    hasSpring: false,
   };
-  return platform;
+
+  // Chance de spawnar mola (menos na temporária)
+  if (type !== "temporary" && Math.random() < 0.2) {
+    platform.hasSpring = true;
+    springs.push({
+      platform,
+      offsetX: platform.width / 2 - 10,
+      width: 20,
+      height: 20,
+    });
+  }
+
+  platforms.push(platform);
 }
 
-// ===== GERADOR DE PLATAFORMAS (GRUPOS DE 3) =====
-function spawnPlatformBatch() {
-  let batchY = platforms.length > 0 ? Math.min(...platforms.map(p => p.y)) - 100 : 550;
+// Inicial
+function initPlatforms() {
+  platforms = [];
+  springs = [];
+  usedPlatforms.clear();
 
-  for (let i = 0; i < 3; i++) {
+  // Plataforma inicial fixa
+  createPlatform(canvas.width / 2 - 40, canvas.height - 20, "normal");
+
+  for (let i = 0; i < 6; i++) {
     let x = Math.random() * (canvas.width - 80);
-    let typeChance = Math.random();
-    let type;
-
-    if (typeChance < 0.2) type = PLATFORM_TYPES.TEMP; // 20%
-    else if (typeChance < 0.4) type = PLATFORM_TYPES.MOVING; // 20%
-    else if (typeChance < 0.55) type = PLATFORM_TYPES.NORMAL_SPRING; // 15%
-    else if (typeChance < 0.7) type = PLATFORM_TYPES.MOVING_SPRING; // 15%
-    else type = PLATFORM_TYPES.NORMAL; // 30%
-
-    // TEMPORÁRIA nunca spawna mola
-    if (type === PLATFORM_TYPES.TEMP) {
-      platforms.push(createPlatform(x, batchY, PLATFORM_TYPES.TEMP));
-    } else {
-      platforms.push(createPlatform(x, batchY, type));
-    }
-    batchY -= 100;
+    let y = canvas.height - 100 - i * 100;
+    let type = Math.random() < 0.2 ? "moving" : "normal";
+    if (Math.random() < 0.1) type = "temporary";
+    createPlatform(x, y, type);
   }
 }
 
-// ===== RESETAR JOGO =====
-function resetGame() {
-  player.x = 160;
-  player.y = 500;
-  player.velocityY = 0;
-  score = 0;
-  gameOver = false;
-  cameraY = 0;
-
-  platforms = [];
-  // Plataforma inicial garantida
-  platforms.push(createPlatform(140, 550, PLATFORM_TYPES.NORMAL));
-
-  // Primeiro lote
-  spawnPlatformBatch();
-}
-
-// ===== ATUALIZAR JOGADOR =====
+// Atualizar jogador
 function updatePlayer() {
+  if (keys.left) player.x -= 4;
+  if (keys.right) player.x += 4;
+
   player.velocityY += player.gravity;
   player.y += player.velocityY;
 
-  // Movimento horizontal (PC)
-  if (keys.left) player.x -= 5;
-  if (keys.right) player.x += 5;
-
-  // Limites da tela
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-  // Colisão com plataformas
+  // Limite superior
+  const topLimit = cameraY + 60;
+  if (player.y < topLimit) {
+    player.y = topLimit;
+    cameraY += player.velocityY;
+  }
+
   player.onGround = false;
-  for (let plat of platforms) {
+
+  platforms.forEach((p, idx) => {
     if (
-      player.x < plat.x + plat.width &&
-      player.x + player.width > plat.x &&
-      player.y + player.height > plat.y &&
-      player.y + player.height < plat.y + plat.height + 10 &&
-      player.velocityY >= 0
+      player.x + player.width > p.x &&
+      player.x < p.x + p.width &&
+      player.y + player.height > p.y &&
+      player.y + player.height < p.y + p.height + 10 &&
+      player.velocityY > 0
     ) {
-      // TEMPORÁRIA desaparece
-      if (plat.type === PLATFORM_TYPES.TEMP) {
-        plat.timer -= 1;
-        if (plat.timer <= 0) {
-          platforms = platforms.filter(p => p !== plat);
+      if (usedPlatforms.has(idx) && p.y > player.y) {
+        gameOver = true;
+      } else {
+        player.velocityY = player.jumpPower;
+        player.onGround = true;
+        highestPlatformY = p.y;
+        usedPlatforms.add(idx);
+
+        if (p.type === "temporary") {
+          p.timer = 60;
         }
       }
-
-      // Normal e com mola
-      player.onGround = true;
-      player.velocityY = player.jumpPower;
-
-      if (plat.hasSpring) {
-        player.velocityY = plat.type.includes("moving") ? -18 : -15; // mola dá pulo maior
-      }
     }
-  }
+  });
 
-  // Se cair abaixo da câmera = game over
-  if (player.y - cameraY > canvas.height) {
-    gameOver = true;
-  }
+  // Molas
+  springs.forEach((s) => {
+    if (
+      player.x + player.width > s.platform.x + s.offsetX &&
+      player.x < s.platform.x + s.offsetX + s.width &&
+      player.y + player.height > s.platform.y - s.height &&
+      player.y + player.height < s.platform.y + 10 &&
+      player.velocityY > 0
+    ) {
+      player.velocityY = player.jumpPower * 1.8;
+    }
+  });
+
+  if (player.y > canvas.height) gameOver = true;
 }
 
-// ===== ATUALIZAR PLATAFORMAS =====
+// Atualizar plataformas
 function updatePlatforms() {
-  for (let plat of platforms) {
-    // Plataforma móvel
-    if (plat.dx !== 0) {
-      plat.x += plat.dx;
-      if (plat.x < 0 || plat.x + plat.width > canvas.width) {
-        plat.dx *= -1;
+  platforms.forEach((p) => {
+    if (p.type === "moving") {
+      p.x += p.dx;
+      if (p.x < 0 || p.x + p.width > canvas.width) p.dx *= -1;
+    }
+    if (p.type === "temporary" && p.timer > 0) {
+      p.timer--;
+      if (p.timer === 0) {
+        p.y = -1000;
       }
     }
-  }
+  });
 
-  // Remover plataformas muito abaixo
-  platforms = platforms.filter(p => p.y - cameraY < canvas.height);
+  platforms = platforms.filter((p) => p.y < player.y + canvas.height);
+  springs = springs.filter((s) => s.platform.y < player.y + canvas.height);
 
-  // Se menos de 6 plataformas → gerar novo lote
-  if (platforms.length < 6) {
-    spawnPlatformBatch();
+  while (platforms.length < 8) {
+    let lastY = Math.min(...platforms.map((p) => p.y));
+    let x = Math.random() * (canvas.width - 80);
+    let y = lastY - 100;
+    let type = "normal";
+    let rand = Math.random();
+    if (rand < 0.15) type = "moving";
+    else if (rand < 0.25) type = "temporary";
+    createPlatform(x, y, type);
   }
 }
 
-// ===== ATUALIZAR CÂMERA =====
+// Câmera
 function updateCamera() {
-  if (player.y < cameraY + canvas.height / 3) {
-    cameraY = player.y - canvas.height / 3;
+  const targetY = player.y - 200;
+  if (targetY < cameraY) {
+    cameraY -= (cameraY - targetY) * 0.1;
+  }
+  if (cameraY > player.y - 100) {
+    cameraY = player.y - 100;
   }
 }
 
-// ===== DESENHAR =====
+// Desenhar
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.save();
-  ctx.translate(0, -cameraY);
-
-  // Jogador
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-
-  // Plataformas
-  for (let plat of platforms) {
-    ctx.fillStyle =
-      plat.type === PLATFORM_TYPES.TEMP ? "#f44336" :
-      plat.type.includes("moving") ? "#2196f3" :
-      "#4caf50";
-    ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-
-    // Mola
-    if (plat.hasSpring) {
-      ctx.fillStyle = "#ffeb3b";
-      ctx.fillRect(plat.x + plat.width/3, plat.y - 10, 20, 10);
+  ctx.fillStyle = "green";
+  platforms.forEach((p) => {
+    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+    if (p.hasSpring) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(p.x + p.width / 2 - 10, p.y - 20 - cameraY, 20, 20);
+      ctx.fillStyle = "green";
     }
-  }
+  });
 
-  ctx.restore();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
 
-  // HUD
-  ctx.fillStyle = "#000";
+  ctx.fillStyle = "black";
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 10, 30);
 }
 
-// ===== GAME LOOP =====
+// Loop
 function gameLoop() {
-  if (!gameOver) {
-    updatePlayer();
-    updatePlatforms();
-    updateCamera();
-    draw();
-    score++;
-    requestAnimationFrame(gameLoop);
-  } else {
-    ctx.fillStyle = "#000";
+  if (gameOver) {
+    ctx.fillStyle = "black";
     ctx.font = "30px Arial";
-    ctx.fillText("Game Over", 100, canvas.height / 2);
+    ctx.fillText("Game Over", canvas.width / 2 - 70, canvas.height / 2);
+    return;
   }
+
+  updatePlayer();
+  updatePlatforms();
+  updateCamera();
+
+  score = Math.max(score, Math.floor(canvas.height - player.y + cameraY));
+
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
-// ===== CONTROLES =====
-let keys = { left: false, right: false };
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
-});
-document.addEventListener("keyup", e => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
-});
-
-// Controle por movimento no celular
-window.addEventListener("deviceorientation", e => {
-  if (e.gamma > 10) { keys.right = true; keys.left = false; }
-  else if (e.gamma < -10) { keys.left = true; keys.right = false; }
-  else { keys.left = false; keys.right = false; }
-});
-
-// Clique para reiniciar
-canvas.addEventListener("click", () => {
-  if (gameOver) {
-    resetGame();
-    gameLoop();
-  }
-});
-
-// ===== INICIAR =====
-resetGame();
+// Start
+initPlatforms();
 gameLoop();
