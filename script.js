@@ -22,7 +22,6 @@ let cameraY = 0;
 let gameStarted = false;
 let falling = false;
 
-// Botões
 const restartBtn = document.getElementById("restartBtn");
 const startBtn = document.getElementById("startBtn");
 restartBtn.addEventListener("click", () => {
@@ -33,7 +32,7 @@ startBtn.addEventListener("click", () => {
   startGame();
 });
 
-// Controles no PC
+// Controles PC
 let keys = { left: false, right: false };
 document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
@@ -44,7 +43,7 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
 });
 
-// Controles no celular (giroscópio)
+// Controles mobile
 window.addEventListener("deviceorientation", (e) => {
   if (e.gamma > 5) {
     keys.right = true;
@@ -69,6 +68,7 @@ function createPlatform(x, y, type = "normal") {
     dx: type === "moving" ? 2 : 0,
     timer: type === "temporary" ? 300 : null,
     used: false,
+    scored: false, // novo: para evitar contar pontos duas vezes
   };
 }
 
@@ -83,7 +83,7 @@ function resetGame() {
   falling = false;
 
   platforms = [];
-  platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal")); // inicial fixa
+  platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
 
   for (let i = 1; i < 7; i++) {
     let px = Math.random() * (canvas.width - 70);
@@ -106,15 +106,12 @@ function startGame() {
 
 // Atualizar jogador
 function updatePlayer() {
-  // Movimento horizontal
   if (keys.left) player.x -= 4;
   if (keys.right) player.x += 4;
 
-  // Wrap lateral
   if (player.x + player.width < 0) player.x = canvas.width;
   if (player.x > canvas.width) player.x = -player.width;
 
-  // Gravidade
   player.velocityY += player.gravity;
   player.y += player.velocityY;
 
@@ -127,6 +124,11 @@ function updatePlayer() {
       player.y + player.height < p.y + p.height + 10 &&
       player.velocityY > 0
     ) {
+      if (!p.scored) {
+        score++; // ✅ agora só conta ponto quando pula na plataforma
+        p.scored = true;
+      }
+
       if (p.type === "temporary") {
         p.timer -= 1;
         if (p.timer <= 0) {
@@ -137,23 +139,21 @@ function updatePlayer() {
         p.used = true;
         setTimeout(() => {
           platforms = platforms.filter((pl) => pl !== p);
-        }, 200); // some rápido após uso
+        }, 200); // nuvem some após uso
       }
+
       player.velocityY = player.jumpPower;
     }
   });
 
-  // Se cair
   if (player.y - cameraY > canvas.height) {
     gameOver = true;
   }
 
-  // Limite superior da câmera
   if (player.y < canvas.height / 2 - cameraY) {
     cameraY = player.y - canvas.height / 2;
   }
 
-  // Detecta se está caindo
   falling = player.velocityY > 5;
 }
 
@@ -168,10 +168,8 @@ function updatePlatforms() {
     }
   });
 
-  // Remover plataformas muito abaixo
   platforms = platforms.filter((p) => p.y - cameraY < canvas.height + 100);
 
-  // Gerar novas
   while (platforms.length < 10) {
     let px = Math.random() * (canvas.width - 70);
     let py = platforms[platforms.length - 1].y - 80;
@@ -193,7 +191,15 @@ function drawPlatforms() {
     if (p.type === "normal") ctx.fillStyle = "#4caf50";
     if (p.type === "moving") ctx.fillStyle = "#2196f3";
     if (p.type === "temporary") ctx.fillStyle = "#ff9800";
-    if (p.type === "cloud") ctx.fillStyle = "#ddd"; // nuvem cinza clara
+    if (p.type === "cloud") {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(p.x + 15, p.y - cameraY + 7, 10, 0, Math.PI * 2);
+      ctx.arc(p.x + 35, p.y - cameraY + 7, 12, 0, Math.PI * 2);
+      ctx.arc(p.x + 55, p.y - cameraY + 7, 10, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
   });
 }
@@ -217,12 +223,9 @@ function gameLoop() {
     drawPlatforms();
     drawScore();
 
-    // Score sobe com o jogo
-    score++;
-
-    // Se cair, a pontuação vai caindo rápido
+    // Se cair, perde pontos rápido
     if (falling && score > 0) {
-      score -= 3;
+      score -= 2;
       if (score < 0) score = 0;
     }
 
