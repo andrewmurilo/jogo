@@ -27,6 +27,7 @@ const startScreen = document.getElementById("startScreen");
 const startSoloBtn = document.getElementById("startSolo");
 const startIABtn = document.getElementById("startIA");
 const restartBtn = document.getElementById("restartBtn");
+const menuBtn = document.getElementById("menuBtn");
 
 // Controles PC
 let keys = { left: false, right: false };
@@ -56,7 +57,18 @@ startIABtn.addEventListener("click", ()=>{
 restartBtn.addEventListener("click", ()=>{
     if(faseIA) startFaseIA();
     else resetGame();
+    restartBtn.style.display="none"; menuBtn.style.display="none";
     gameLoop();
+});
+
+// Botão menu inicial
+menuBtn.addEventListener("click", ()=>{
+    startScreen.style.display = "flex";
+    restartBtn.style.display="none";
+    menuBtn.style.display="none";
+    faseIA = false;
+    pontosInfinitos = false;
+    resetGame();
 });
 
 // Criar plataforma
@@ -76,12 +88,13 @@ function resetGame() {
         platforms.push(createPlatform(px,py,types[Math.floor(Math.random()*types.length)]));
     }
     restartBtn.style.display="none";
+    menuBtn.style.display="none";
     faseIA=false; unlockIA=false; pontosInfinitos=false;
 }
 
 // Iniciar fase IA
 function startFaseIA(){
-    faseIA=true; resetGame(); ia.x=100; ia.y=560; ia.velocityY=0; iaScore=0; gameOver=false; restartBtn.style.display="none";
+    faseIA=true; resetGame(); ia.x=100; ia.y=560; ia.velocityY=0; iaScore=0; gameOver=false; restartBtn.style.display="none"; menuBtn.style.display="none";
 }
 
 // Atualizar jogador
@@ -177,26 +190,4 @@ function gameLoop(){
     if(!gameOver){
         if(score>=500 && level===1) level=2;
         if(score>=1000 && level===2) level=3;
-        if(!pontosInfinitos && score>=150000 && !faseIA){ unlockIA=true; gameOver=true; }
-
-        drawBackground();
-        if(!falling){ updatePlayer(); updatePlatforms(); if(faseIA) updateIA(); score++; }
-        else { score-=5; if(score<=0){ score=0; gameOver=true; } }
-
-        drawEntities(); drawPlatforms(); drawHUD();
-        requestAnimationFrame(gameLoop);
-    }else{
-        ctx.fillStyle="#000"; ctx.font="30px Arial";
-        if(unlockIA && !faseIA){ ctx.fillText("Parabéns! Fase IA desbloqueada!",10,canvas.height/2); restartBtn.style.display="block"; restartBtn.textContent="Jogar contra IA";}
-        else if(faseIA){ 
-            let winner = score>iaScore?"Você venceu!":"IA venceu!";
-            ctx.fillText("Fim da Fase IA!",10,canvas.height/2-30);
-            ctx.fillText("Seu Score: "+Math.floor(score),10,canvas.height/2);
-            ctx.fillText("IA Score: "+iaScore,10,canvas.height/2+30);
-            ctx.fillText(winner,10,canvas.height/2+60);
-            restartBtn.style.display="block"; restartBtn.textContent="Reiniciar";
-        } else{ ctx.fillText("Game Over",canvas.width/2-80,canvas.height/2); restartBtn.style.display="block"; restartBtn.textContent="Reiniciar"; }
-    }
-}
-
-resetGame();
+        if(!pontosInfinitos && score>=150000
