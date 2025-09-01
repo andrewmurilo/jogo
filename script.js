@@ -18,6 +18,7 @@ let player = {
 let platforms = [];
 let score = 0;
 let gameOver = false;
+let falling = false; // se está em queda
 let cameraY = 0;
 let level = 1;
 
@@ -74,6 +75,7 @@ function resetGame() {
   player.velocityY = 0;
   score = 0;
   gameOver = false;
+  falling = false;
   cameraY = 0;
   level = 1;
 
@@ -93,6 +95,8 @@ function resetGame() {
 
 // Atualizar jogador
 function updatePlayer() {
+  if (falling) return; // se já caiu, não controla mais o player
+
   // Movimento horizontal
   if (keys.left) player.x -= 4;
   if (keys.right) player.x += 4;
@@ -125,9 +129,9 @@ function updatePlayer() {
     }
   });
 
-  // Se cair
+  // Se cair da tela
   if (player.y - cameraY > canvas.height) {
-    gameOver = true;
+    falling = true;
   }
 
   // Limite superior da câmera
@@ -221,14 +225,24 @@ function gameLoop() {
     if (score >= 1000 && level === 2) level = 3;
 
     drawBackground();
-    updatePlayer();
-    updatePlatforms();
+
+    if (!falling) {
+      updatePlayer();
+      updatePlatforms();
+      score++;
+    } else {
+      // Quando cair → score começa a cair
+      score -= 5;
+      if (score <= 0) {
+        score = 0;
+        gameOver = true;
+      }
+    }
 
     drawPlayer();
     drawPlatforms();
     drawHUD();
 
-    score++;
     requestAnimationFrame(gameLoop);
   } else {
     ctx.fillStyle = "#000";
