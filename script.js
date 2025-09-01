@@ -93,13 +93,14 @@ function createPlatform(x,y,type="normal") {
 function resetGame() {
     player.x=180; player.y=560; player.velocityY=0;
     score=0; gameOver=false; falling=false; cameraY=0; level=1;
-    platforms=[createPlatform(canvas.width/2-35,canvas.height-40,"normal")];
+    platforms=[createPlatform(canvas.width/2-35, canvas.height-40, "normal")];
     for(let i=1;i<7;i++){
         let px=Math.random()*(canvas.width-70);
         let py=canvas.height-i*100;
         let types=["normal","moving","temporary"];
-        platforms.push(createPlatform(px,py,types[Math.floor(Math.random()*types.length)]));
+        platforms.push(createPlatform(px, py, types[Math.floor(Math.random()*types.length)]));
     }
+    cameraY = 0;
     restartBtn.style.display="none";
     menuBtn.style.display="none";
     faseIA=false; unlockIA=false; pontosInfinitos=false;
@@ -142,7 +143,10 @@ function updatePlayer(){
     });
 
     if(player.y-cameraY>canvas.height) falling=true;
-    if(player.y<canvas.height/2-cameraY) cameraY=player.y-canvas.height/2;
+    // Atualizar câmera suavemente
+    if(player.y - cameraY < canvas.height/2){
+        cameraY += (player.y - canvas.height/2 - cameraY) * 0.1;
+    }
 }
 
 // Atualizar IA
@@ -183,7 +187,7 @@ function updatePlatforms(){
             }
         }
 
-        // Suavização vertical (opcional)
+        // Suavização vertical
         p.y += (p.targetY - p.y)*0.1;
     });
     spawnPlatforms();
@@ -191,17 +195,17 @@ function updatePlatforms(){
 
 // Spawn contínuo de plataformas
 function spawnPlatforms(){
-    let lastY = Math.min(...platforms.map(p=>p.y));
-    while(platforms.length < 10){
+    let minY = Math.min(...platforms.map(p=>p.y));
+    while(minY > cameraY - 200){ // spawn acima da visão atual
         let px = Math.random()*(canvas.width-70);
-        let py = lastY - 80 - Math.random()*20;
+        let py = minY - 80 - Math.random()*20;
         let types;
         if(level===1) types=["normal","normal","moving"];
         else if(level===2) types=["normal","moving","temporary"];
         else types=["moving","temporary","temporary"];
         let type = types[Math.floor(Math.random()*types.length)];
         platforms.push(createPlatform(px,py,type));
-        lastY = py;
+        minY = py;
     }
 }
 
@@ -223,7 +227,7 @@ function drawPlatforms(){
         if(p.hasSpring){
             let springHeight = 10 * p.springScale;
             ctx.fillStyle="#000";
-            ctx.fillRect(p.x + p.width/2 - 5, p.y - springHeight - cameraY, 10, springHeight);
+            ctx.fillRect(p.x + p.width/2 -5, p.y - springHeight - cameraY, 10, springHeight);
         }
     });
 }
@@ -231,7 +235,8 @@ function drawPlatforms(){
 // HUD
 function drawHUD(){
     ctx.fillStyle="#000"; ctx.font="20px Arial";
-    ctx.fillText("Score: "+Math.floor(score),10,30); ctx.fillText("Level: "+level,10,55);
+    ctx.fillText("Score: "+Math.floor(score),10,30); 
+    ctx.fillText("Level: "+level,10,55);
     if(falling){ ctx.fillStyle="red"; ctx.fillText("Caiu! Pontos diminuindo...",50,80); }
     if(faseIA){ ctx.fillStyle="#0000ff"; ctx.fillText("IA Score: "+iaScore,200,30);}
 }
