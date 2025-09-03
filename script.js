@@ -85,11 +85,13 @@ function updatePlayer() {
       player.y + player.height < p.y + p.height + 10 &&
       player.velocityY > 0
     ) {
-      if (player.x + player.width / 2 > p.x + p.width / 2 - 10 && 
+      // Apenas aplica super pulo se a plataforma tiver mola
+      if (p.hasSpring &&
+          player.x + player.width / 2 > p.x + p.width / 2 - 10 && 
           player.x + player.width / 2 < p.x + p.width / 2 + 10) {
-        player.velocityY = -18;
+        player.velocityY = -18; // super pulo da mola
       } else {
-        player.velocityY = player.jumpPower;
+        player.velocityY = player.jumpPower; // pulo normal
       }
 
       if (player.lastPlatform !== p) {
@@ -120,6 +122,7 @@ function updatePlatforms() {
       if (p.x <= 0 || p.x + p.width >= canvas.width) p.dx *= -1;
     }
 
+    // Nuvens piscando
     if (p.type === "cloud" && p.fadingOut) {
       p.alpha -= 0.05;
       if (p.alpha <= 0) {
@@ -176,6 +179,7 @@ function drawPlatforms() {
 
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
+    // Desenha mola apenas se existir
     if (p.hasSpring) {
       ctx.fillStyle = "#000";
       ctx.fillRect(p.x + p.width / 2 - 10, p.y - 12 - cameraY, 20, 12);
