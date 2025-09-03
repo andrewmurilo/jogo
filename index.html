@@ -3,97 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jump Game</title>
+  <title>Jogo Escalada Extrema</title>
   <style>
     body {
       margin: 0;
+      background: #87ceeb;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #87ceeb;
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
     canvas {
-      background: #e0f7fa;
-      display: none;
+      background: linear-gradient(to top, #87ceeb, #fff);
+      border: 2px solid #000;
     }
-    #startScreen {
+    #ui {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: rgba(0,0,0,0.5);
+      flex-direction: column;
       color: white;
-      text-align: center;
+      font-size: 24px;
     }
-    #startScreen h1 {
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-    #startScreen button {
-      padding: 12px 24px;
-      font-size: 18px;
-      margin-top: 10px;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      background: #4caf50;
-      color: white;
-      transition: background 0.3s;
-    }
-    #startScreen button:hover {
-      background: #45a049;
-    }
-    #restartBtn {
-      display: none;
+    button {
       margin-top: 20px;
       padding: 10px 20px;
       font-size: 18px;
       cursor: pointer;
+      border-radius: 10px;
       border: none;
-      border-radius: 8px;
-      background: #f44336;
+      background: #4caf50;
       color: white;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #45a049;
     }
   </style>
 </head>
 <body>
-  <div id="startScreen">
-    <h1>Jump Game</h1>
-    <button id="startBtn">Iniciar Jogo</button>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="ui">Score: 0</div>
+  <div id="menu">
+    <h1>Escalada Extrema</h1>
+    <button onclick="startGame()">Start</button>
   </div>
-  <canvas id="gameCanvas" width="360" height="640"></canvas>
-  <button id="restartBtn">Reiniciar</button>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player, platforms, score, gameOver, cameraY, gameStarted = false;
-
-    const restartBtn = document.getElementById("restartBtn");
-    const startScreen = document.getElementById("startScreen");
-    const startBtn = document.getElementById("startBtn");
-
-    startBtn.addEventListener("click", () => {
-      startScreen.style.display = "none";
-      canvas.style.display = "block";
-      resetGame();
-      gameStarted = true;
-      gameLoop();
-    });
-
-    restartBtn.addEventListener("click", () => {
-      resetGame();
-      gameLoop();
-    });
-
+    let player, platforms, score, cameraY, gameOver, gameStarted;
     let keys = { left: false, right: false };
+
     document.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
       if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
@@ -103,44 +81,52 @@
       if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
     });
 
+    // Controles no celular (giroscópio)
+    window.addEventListener("deviceorientation", (event) => {
+      if (event.gamma > 10) { 
+        keys.right = true; 
+        keys.left = false;
+      } else if (event.gamma < -10) { 
+        keys.left = true; 
+        keys.right = false;
+      } else { 
+        keys.left = false; 
+        keys.right = false; 
+      }
+    });
+
     function createPlatform(x, y, type = "normal") {
-      return {
-        x, y,
-        width: 70, height: 15,
-        type,
+      return { 
+        x, y, width: 70, height: 15, type,
         dx: type === "moving" ? 2 : 0,
-        timer: type === "temporary" ? 300 : null,
-        used: false
+        hasSpring: true,
+        visible: true,
+        timer: 0,
+        alpha: 1,
+        fadingOut: false,
+        fadingIn: false
       };
     }
 
-    function resetGame() {
-      player = {
-        x: canvas.width / 2 - 20,
-        y: canvas.height - 80,
-        width: 40, height: 40,
-        color: "#ff5722",
-        velocityY: 0,
-        gravity: 0.4,
-        jumpPower: -10
+    function startGame() {
+      player = { 
+        x: canvas.width / 2 - 15, y: canvas.height - 50, 
+        width: 30, height: 30, 
+        velocityY: 0, gravity: 0.4, jumpPower: -10, 
+        lastPlatform: null 
       };
-
       platforms = [];
-      score = 0;
-      gameOver = false;
-      cameraY = 0;
-
-      platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
-
-      for (let i = 1; i < 7; i++) {
-        let px = Math.random() * (canvas.width - 70);
-        let py = canvas.height - i * 100;
-        let types = ["normal", "moving", "temporary", "cloud"];
-        let type = types[Math.floor(Math.random() * types.length)];
-        platforms.push(createPlatform(px, py, type));
+      let y = canvas.height - 20;
+      for (let i = 0; i < 10; i++) {
+        platforms.push(createPlatform(Math.random() * (canvas.width - 70), y));
+        y -= 80;
       }
-
-      restartBtn.style.display = "none";
+      score = 0;
+      cameraY = 0;
+      gameOver = false;
+      gameStarted = true;
+      document.getElementById("menu").style.display = "none";
+      gameLoop();
     }
 
     function updatePlayer() {
@@ -154,6 +140,8 @@
       player.y += player.velocityY;
 
       platforms.forEach((p) => {
+        if (!p.visible) return; 
+
         if (
           player.x < p.x + p.width &&
           player.x + player.width > p.x &&
@@ -161,22 +149,20 @@
           player.y + player.height < p.y + p.height + 10 &&
           player.velocityY > 0
         ) {
-          player.velocityY = player.jumpPower;
-
-          if (!p.used) {
-            score += 10; // conta ponto apenas quando pisa em uma plataforma
-            p.used = true;
+          if (player.x + player.width / 2 > p.x + p.width / 2 - 10 && 
+              player.x + player.width / 2 < p.x + p.width / 2 + 10) {
+            player.velocityY = -18;
+          } else {
+            player.velocityY = player.jumpPower;
           }
 
-          if (p.type === "temporary") {
-            p.timer -= 1;
-            if (p.timer <= 0) {
-              platforms = platforms.filter((pl) => pl !== p);
-            }
+          if (player.lastPlatform !== p) {
+            score++;
+            player.lastPlatform = p;
           }
 
           if (p.type === "cloud") {
-            platforms = platforms.filter((pl) => pl !== p); // nuvem some logo após pisar
+            p.fadingOut = true;
           }
         }
       });
@@ -194,8 +180,31 @@
       platforms.forEach((p) => {
         if (p.type === "moving") {
           p.x += p.dx;
-          if (p.x <= 0 || p.x + p.width >= canvas.width) {
-            p.dx *= -1;
+          if (p.x <= 0 || p.x + p.width >= canvas.width) p.dx *= -1;
+        }
+
+        if (p.type === "cloud" && p.fadingOut) {
+          p.alpha -= 0.05;
+          if (p.alpha <= 0) {
+            p.alpha = 0;
+            p.visible = false;
+            p.fadingOut = false;
+            p.timer = Date.now();
+          }
+        }
+
+        if (p.type === "cloud" && !p.visible) {
+          if (Date.now() - p.timer > 3000) {
+            p.visible = true;
+            p.fadingIn = true;
+          }
+        }
+
+        if (p.type === "cloud" && p.fadingIn) {
+          p.alpha += 0.05;
+          if (p.alpha >= 1) {
+            p.alpha = 1;
+            p.fadingIn = false;
           }
         }
       });
@@ -205,31 +214,40 @@
       while (platforms.length < 10) {
         let px = Math.random() * (canvas.width - 70);
         let py = platforms[platforms.length - 1].y - 80;
-        let types = ["normal", "moving", "temporary", "cloud"];
+
+        let types = (py < -2500) ? ["normal", "moving", "cloud"] : ["normal", "moving"];
         let type = types[Math.floor(Math.random() * types.length)];
+
         platforms.push(createPlatform(px, py, type));
       }
     }
 
     function drawPlayer() {
-      ctx.fillStyle = player.color;
+      ctx.fillStyle = "#ff0000";
       ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
     }
 
     function drawPlatforms() {
       platforms.forEach((p) => {
+        if (!p.visible && !p.fadingIn) return;
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+
         if (p.type === "normal") ctx.fillStyle = "#4caf50";
         if (p.type === "moving") ctx.fillStyle = "#2196f3";
-        if (p.type === "temporary") ctx.fillStyle = "#ff9800";
-        if (p.type === "cloud") ctx.fillStyle = "#ffffff";
+        if (p.type === "cloud") ctx.fillStyle = "#ccc";
+
         ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+
+        ctx.fillStyle = "#000";
+        ctx.fillRect(p.x + p.width / 2 - 10, p.y - 12 - cameraY, 20, 12);
+
+        ctx.restore();
       });
     }
 
-    function drawScore() {
-      ctx.fillStyle = "#000";
-      ctx.font = "20px Arial";
-      ctx.fillText("Score: " + score, 10, 30);
+    function drawUI() {
+      document.getElementById("ui").innerText = "Score: " + score;
     }
 
     function gameLoop() {
@@ -238,17 +256,14 @@
       if (!gameOver) {
         updatePlayer();
         updatePlatforms();
-
         drawPlayer();
         drawPlatforms();
-        drawScore();
-
+        drawUI();
         requestAnimationFrame(gameLoop);
       } else {
-        ctx.fillStyle = "#000";
-        ctx.font = "30px Arial";
-        ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
-        restartBtn.style.display = "block";
+        document.getElementById("menu").style.display = "flex";
+        document.querySelector("#menu h1").innerText = "Game Over - Score: " + score;
+        document.querySelector("#menu button").innerText = "Restart";
       }
     }
   </script>
