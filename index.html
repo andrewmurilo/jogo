@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo Escalada Extrema</title>
+  <title>Escalada Extrema</title>
   <style>
     body {
       margin: 0;
@@ -99,7 +99,7 @@
       return { 
         x, y, width: 70, height: 15, type,
         dx: type === "moving" ? 2 : 0,
-        hasSpring: true,
+        hasSpring: Math.random() < 0.3, // 30% de chance de mola
         visible: true,
         timer: 0,
         alpha: 1,
@@ -239,8 +239,10 @@
 
         ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
-        ctx.fillStyle = "#000";
-        ctx.fillRect(p.x + p.width / 2 - 10, p.y - 12 - cameraY, 20, 12);
+        if (p.hasSpring) {
+          ctx.fillStyle = "#000";
+          ctx.fillRect(p.x + p.width / 2 - 10, p.y - 12 - cameraY, 20, 12);
+        }
 
         ctx.restore();
       });
