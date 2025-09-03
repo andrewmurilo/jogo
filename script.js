@@ -6,18 +6,28 @@ let keys = { left: false, right: false };
 let moveSpeed = 4;
 let gravity = 0.4;
 
-// Controles de pause e opções
-const pauseBtn = document.getElementById("pauseBtn");
-const optionsBtn = document.getElementById("optionsBtn");
-const optionsMenu = document.getElementById("optionsMenu");
+// Elementos
+const pauseMenu = document.getElementById("pauseMenu");
 const difficultySelect = document.getElementById("difficulty");
 const sensitivitySlider = document.getElementById("sensitivity");
+const invisiblePauseBtn = document.getElementById("invisiblePauseBtn");
 
-pauseBtn.addEventListener("click", () => { paused = !paused; });
-optionsBtn.addEventListener("click", () => { optionsMenu.style.display = "flex"; paused = true; });
-function closeOptions() {
-  optionsMenu.style.display = "none";
+// Abrir/Fechar pause
+invisiblePauseBtn.addEventListener("click", togglePause);
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") togglePause();
+});
+
+// Funções de pause
+function togglePause() {
+  if(!gameStarted) return;
+  paused = !paused;
+  pauseMenu.style.display = paused ? "flex" : "none";
+}
+
+function resumeGame() {
   paused = false;
+  pauseMenu.style.display = "none";
   setDifficulty();
   setSensitivity();
 }
@@ -25,49 +35,43 @@ function closeOptions() {
 // Funções de dificuldade e sensibilidade
 function setDifficulty() {
   const value = difficultySelect.value;
-  if (value === "easy") gravity = 0.3;
-  if (value === "normal") gravity = 0.4;
-  if (value === "hard") gravity = 0.6;
+  if(value==="easy") gravity=0.3;
+  else if(value==="normal") gravity=0.4;
+  else if(value==="hard") gravity=0.6;
 }
 
 function setSensitivity() {
   moveSpeed = Number(sensitivitySlider.value);
 }
 
-// Controles no PC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+// Controles PC
+document.addEventListener("keydown", (e)=>{
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
 });
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+document.addEventListener("keyup", (e)=>{
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
 });
 
-// Controles no celular
-window.addEventListener("deviceorientation", (event) => {
-  if (!gameStarted || paused) return;
-  if (event.gamma > 10) { keys.right = true; keys.left = false; }
-  else if (event.gamma < -10) { keys.left = true; keys.right = false; }
-  else { keys.left = false; keys.right = false; }
+// Controles celular
+window.addEventListener("deviceorientation", (event)=>{
+  if(!gameStarted||paused) return;
+  if(event.gamma>10){ keys.right=true; keys.left=false; }
+  else if(event.gamma<-10){ keys.left=true; keys.right=false; }
+  else{ keys.left=false; keys.right=false; }
 });
 
 // Criar plataforma
-function createPlatform(x, y, type = "normal") {
-  return { 
-    x, y, width: 70, height: 15, type,
-    dx: type === "moving" ? 2 : 0,
-    hasSpring: Math.random() < 0.3,
-    visible: true, timer: 0, alpha: 1, fadingOut: false, fadingIn: false
-  };
+function createPlatform(x,y,type="normal"){
+  return {x,y,width:70,height:15,type,dx:type==="moving"?2:0,
+    hasSpring: Math.random()<0.3, visible:true, timer:0, alpha:1, fadingOut:false, fadingIn:false};
 }
 
 // Iniciar jogo
-function startGame() {
-  player = { x: canvas.width/2-15, y: canvas.height-50, width:30, height:30, velocityY:0, jumpPower:-10, lastPlatform:null };
-  platforms = [];
-  let y = canvas.height-20;
-  for(let i=0;i<10;i++){ platforms.push(createPlatform(Math.random()*(canvas.width-70),y)); y-=80; }
+function startGame(){
+  player={x:canvas.width/2-15, y:canvas.height-50, width:30,height:30,velocityY:0,jumpPower:-10,lastPlatform:null};
+  platforms=[]; let y=canvas.height-20; for(let i=0;i<10;i++){ platforms.push(createPlatform(Math.random()*(canvas.width-70),y)); y-=80; }
   score=0; cameraY=0; gameOver=false; gameStarted=true; paused=false;
   document.getElementById("menu").style.display="none";
   setDifficulty(); setSensitivity();
@@ -75,21 +79,19 @@ function startGame() {
 }
 
 // Atualizar jogador
-function updatePlayer() {
-  if(keys.left) player.x -= moveSpeed;
-  if(keys.right) player.x += moveSpeed;
+function updatePlayer(){
+  if(keys.left) player.x-=moveSpeed;
+  if(keys.right) player.x+=moveSpeed;
   if(player.x+player.width<0) player.x=canvas.width;
   if(player.x>canvas.width) player.x=-player.width;
-
-  player.velocityY += gravity;
-  player.y += player.velocityY;
+  player.velocityY+=gravity;
+  player.y+=player.velocityY;
 
   platforms.forEach(p=>{
     if(!p.visible) return;
-    if(player.x< p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.velocityY>0){
-      if(p.hasSpring && player.x+player.width/2>p.x+p.width/2-10 && player.x+player.width/2<p.x+p.width/2+10){
-        player.velocityY=-18;
-      } else player.velocityY=player.jumpPower;
+    if(player.x<p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.velocityY>0){
+      if(p.hasSpring && player.x+player.width/2>p.x+p.width/2-10 && player.x+player.width/2<p.x+p.width/2+10) player.velocityY=-18;
+      else player.velocityY=player.jumpPower;
       if(player.lastPlatform!==p){ score++; player.lastPlatform=p; }
       if(p.type==="cloud") p.fadingOut=true;
     }
@@ -100,13 +102,12 @@ function updatePlayer() {
 }
 
 // Atualizar plataformas
-function updatePlatforms() {
+function updatePlatforms(){
   platforms.forEach(p=>{
     if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; }
-
-    if(p.type==="cloud" && p.fadingOut){ p.alpha-=0.05; if(p.alpha<=0){ p.alpha=0; p.visible=false; p.fadingOut=false; p.timer=Date.now(); } }
-    if(p.type==="cloud" && !p.visible){ if(Date.now()-p.timer>3000){ p.visible=true; p.fadingIn=true; } }
-    if(p.type==="cloud" && p.fadingIn){ p.alpha+=0.05; if(p.alpha>=1){ p.alpha=1; p.fadingIn=false; } }
+    if(p.type==="cloud"&&p.fadingOut){ p.alpha-=0.05; if(p.alpha<=0){ p.alpha=0; p.visible=false; p.fadingOut=false; p.timer=Date.now(); } }
+    if(p.type==="cloud"&&!p.visible){ if(Date.now()-p.timer>3000){ p.visible=true; p.fadingIn=true; } }
+    if(p.type==="cloud"&&p.fadingIn){ p.alpha+=0.05; if(p.alpha>=1){ p.alpha=1; p.fadingIn=false; } }
   });
 
   platforms=platforms.filter(p=>p.y-cameraY<canvas.height+100);
@@ -136,7 +137,7 @@ function drawPlatforms(){
   });
 }
 
-// Atualizar UI
+// UI
 function drawUI(){ document.getElementById("ui").innerText="Score: "+score; }
 
 // Loop principal
@@ -144,11 +145,7 @@ function gameLoop(){
   if(!paused){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     if(!gameOver){
-      updatePlayer();
-      updatePlatforms();
-      drawPlayer();
-      drawPlatforms();
-      drawUI();
+      updatePlayer(); updatePlatforms(); drawPlayer(); drawPlatforms(); drawUI();
       requestAnimationFrame(gameLoop);
     } else {
       document.getElementById("menu").style.display="flex";
