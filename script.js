@@ -215,3 +215,41 @@ function gameLoop() {
     ctx.fillText("Pressione Start", canvas.width / 2 - 90, canvas.height / 2);
   }
 }
+// Criar plataforma
+function createPlatform(x, y, type = "normal") {
+  return { 
+    x, 
+    y, 
+    width: 70, 
+    height: 15, 
+    type, 
+    dx: type === "moving" ? 2 : 0, 
+    hasSpring: true // ✅ todas as plataformas terão mola
+  };
+}
+
+// Atualizar plataformas
+function updatePlatforms() {
+  platforms.forEach((p) => {
+    if (p.type === "moving") {
+      p.x += p.dx;
+      if (p.x <= 0 || p.x + p.width >= canvas.width) p.dx *= -1;
+    }
+  });
+
+  // Remove as plataformas que ficaram muito abaixo da câmera
+  platforms = platforms.filter((p) => p.y - cameraY < canvas.height + 100);
+
+  // Gera novas plataformas
+  while (platforms.length < 10) {
+    let px = Math.random() * (canvas.width - 70);
+    let py = platforms[platforms.length - 1].y - 80;
+
+    // ✅ só deixa nuvem spawnar acima de certa altura (ex: -2500 no mundo)
+    let types = (py < -2500) ? ["normal", "moving", "cloud"] : ["normal", "moving"];
+    let type = types[Math.floor(Math.random() * types.length)];
+
+    platforms.push(createPlatform(px, py, type));
+  }
+}
+
