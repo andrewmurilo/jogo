@@ -8,11 +8,33 @@
 </head>
 <body>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="ui">Score: 0</div>
+
+  <div id="ui">
+    Score: 0
+    <button id="pauseBtn">Pause</button>
+  </div>
+
   <div id="menu">
     <h1>Escalada Extrema</h1>
     <button onclick="startGame()">Start</button>
   </div>
+
+  <div id="optionsMenu">
+    <h2>Opções</h2>
+    <label for="difficulty">Dificuldade:</label>
+    <select id="difficulty">
+      <option value="easy">Fácil</option>
+      <option value="normal" selected>Normal</option>
+      <option value="hard">Difícil</option>
+    </select>
+
+    <label for="sensitivity">Sensibilidade:</label>
+    <input type="range" id="sensitivity" min="2" max="10" value="4">
+
+    <button onclick="closeOptions()">Fechar</button>
+  </div>
+
+  <button id="optionsBtn">Opções</button>
 
   <script src="script.js"></script>
 </body>
