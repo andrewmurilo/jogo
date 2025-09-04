@@ -1,132 +1,139 @@
-body {
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-family: "Poppins", sans-serif;
-  color: #fff;
-  overflow: hidden;
+:root{
+  --bg1:#0f172a; /* slate-900 */
+  --bg2:#111827; /* gray-900 */
+  --accent:#00eaff;
+  --primary:#0072ff;
+  --primary-2:#00c6ff;
+  --danger:#ff4e50;
+  --card:#1f2937; /* gray-800 */
+  --text:#e5e7eb; /* gray-200 */
 }
 
-/* Canvas */
-#gameCanvas {
-  border: 4px solid #fff;
-  border-radius: 15px;
-  background: linear-gradient(to top, #87ceeb, #e0f7fa);
-  box-shadow: 0px 0px 25px rgba(0,0,0,0.6);
-  z-index: 1;
+*{ box-sizing:border-box; }
+html,body{
+  margin:0;
+  height:100%;
+  background: radial-gradient(1200px 800px at 50% -20%, #193556 0%, var(--bg1) 55%, var(--bg2) 100%);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  color: var(--text);
+  touch-action: none; /* evita rolagem “subir” em mobile */
 }
 
-/* UI */
-#ui {
-  position: absolute;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 22px;
-  font-weight: bold;
-  font-family: "Orbitron", sans-serif;
-  background: rgba(0,0,0,0.4);
-  padding: 6px 14px;
-  border-radius: 10px;
-  box-shadow: 0px 0px 8px rgba(0,0,0,0.5);
-  z-index: 2;
+#gameRoot{
+  position:relative;
+  width: 400px;
+  height: 700px;
+  margin: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 92vw;
+  max-height: 92vh;
 }
 
-/* Menu inicial */
-#menu {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 3;
-}
-#menu h1 {
-  font-size: 40px;
-  margin-bottom: 25px;
-  text-shadow: 0px 0px 15px #00eaff;
-}
-#menu button {
-  padding: 12px 25px;
-  margin-top: 15px;
-  font-size: 18px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(45deg, #00c6ff, #0072ff);
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s, background 0.3s;
-}
-#menu button:hover {
-  transform: scale(1.1);
-  background: linear-gradient(45deg, #0072ff, #00c6ff);
-}
-
-/* Pause menu */
-#pauseMenu {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 280px;
-  background: rgba(20,20,20,0.95);
-  padding: 25px;
+#gameCanvas{
+  width:100%;
+  height:100%;
+  display:block;
+  background: linear-gradient(to top, #87ceeb 0%, #e0f7fa 100%);
+  border: 4px solid rgba(255,255,255,.85);
   border-radius: 18px;
-  text-align: center;
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  z-index: 4;
-  box-shadow: 0px 0px 20px rgba(0,0,0,0.7);
+  box-shadow: 0 20px 40px rgba(0,0,0,.45);
 }
+
+/* HUD */
+#ui{
+  position:absolute;
+  top:10px; left:50%;
+  transform: translateX(-50%);
+  padding:6px 14px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.35);
+  font-weight: 700;
+  letter-spacing:.5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  user-select:none;
+}
+
+/* Overlays (menu/pause) */
+.overlay{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(0,0,0,.55);
+}
+.overlay.hidden{ display:none; }
+
+.card{
+  width:min(92%, 360px);
+  background: var(--card);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  padding:20px;
+  text-align:center;
+}
+
+h1{ margin:.2rem 0 1rem; text-shadow:0 0 12px rgba(0,234,255,.45); }
+h2{ margin:.2rem 0 1rem; text-shadow:0 0 10px rgba(0,234,255,.35); }
+
+.row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap: 12px;
+  background: rgba(255,255,255,.05);
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+.row label{ font-size:14px; opacity:.9; }
+.row select, .row input[type="range"]{
+  flex:1;
+}
+
+.actions{ display:flex; gap:10px; justify-content:center; margin-top:8px; }
+
+button{
+  border:none; cursor:pointer; user-select:none;
+  border-radius:12px; padding:10px 16px; font-weight:700;
+  background: linear-gradient(45deg, var(--primary), var(--primary-2));
+  color:white; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  transition: transform .12s ease, filter .18s ease;
+}
+button:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+button:active{ transform: translateY(0); filter: brightness(.95); }
+button.primary{ background: linear-gradient(45deg, var(--primary), var(--primary-2)); }
+button.ghost{ background: linear-gradient(45deg, #6b7280, #9ca3af); color:#111; }
 
 /* Botões fixos */
-#pauseBtn, #fullscreenBtn {
-  position: absolute;
-  top: 15px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
-  z-index: 5;
+#pauseBtn, #fullscreenBtn{
+  position:absolute; top:10px;
+  width:42px; height:42px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
 }
-#pauseBtn {
-  right: 60px;
-  background: #ff4e50;
-  color: #fff;
+#pauseBtn{ right:62px; background: linear-gradient(45deg, #ff7676, var(--danger)); }
+#fullscreenBtn{ right:12px; background: linear-gradient(45deg, var(--primary), var(--primary-2)); }
+
+/* Controles Mobile */
+#controls{
+  position:absolute; inset-inline:0; bottom:14px;
+  display:flex; justify-content:space-between; padding:0 24px;
 }
-#fullscreenBtn {
-  right: 15px;
-  background: #00c6ff;
-  color: #fff;
+#controls button{
+  width:74px; height:74px; border-radius:50%;
+  background: rgba(0,0,0,.45);
+  font-size:30px;
 }
 
-/* Controles mobile */
-#controls {
-  position: absolute;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 50px;
-  z-index: 6;
+/* Mostrar botão de fullscreen e controles só em dispositivos touch */
+@media (hover:none) and (pointer:coarse){
+  #fullscreenBtn{ display:flex; }
+  #controls{ display:flex; }
 }
-#controls button {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  font-size: 28px;
-  cursor: pointer;
+/* Em desktop: esconde fullscreen e mantém pause */
+@media (hover:hover) and (pointer:fine){
+  #fullscreenBtn, #controls{ display:none; }
+}
+
+/* Responsivo: ajusta root pra caber melhor */
+@media (max-height:750px){
+  #gameRoot{ max-height: 96vh; }
 }

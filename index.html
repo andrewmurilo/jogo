@@ -1,43 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="ui">Score: 0</div>
+  <!-- Container para centralizar e isolar fullscreen no mobile -->
+  <div id="gameRoot">
+    <canvas id="gameCanvas" width="400" height="700"></canvas>
 
-  <!-- Menu inicial -->
-  <div id="menu">
-    <h1>🎮 Escalada Extrema</h1>
-    <button onclick="startGame()">▶️ Iniciar Jogo</button>
-  </div>
+    <!-- HUD -->
+    <div id="ui">Score: 0</div>
 
-  <!-- Menu de pause -->
-  <div id="pauseMenu">
-    <h2>⏸️ Jogo Pausado</h2>
-    <button onclick="resumeGame()">▶️ Continuar</button>
-    <h3>⚙️ Opções</h3>
-    <label for="difficulty">Dificuldade:</label>
-    <select id="difficulty">
-      <option value="easy">Fácil</option>
-      <option value="normal" selected>Normal</option>
-      <option value="hard">Difícil</option>
-    </select>
-    <label for="sensitivity">Sensibilidade:</label>
-    <input type="range" id="sensitivity" min="2" max="10" value="4">
-  </div>
+    <!-- Menus -->
+    <div id="mainMenu" class="overlay">
+      <div class="card">
+        <h1>🎮 Escalada Extrema</h1>
+        <button id="startBtn" class="primary">Iniciar</button>
+        <div class="hint">Use ⬅️ ➡️ no teclado ou botões na tela (mobile).</div>
+      </div>
+    </div>
 
-  <!-- Botões fixos na tela -->
-  <button id="pauseBtn">⏸️</button>
-  <button id="fullscreenBtn">🔲</button>
+    <div id="pauseMenu" class="overlay hidden">
+      <div class="card">
+        <h2>⏸️ Pausado</h2>
 
-  <!-- Controles mobile -->
-  <div id="controls">
-    <button id="leftBtn">⬅️</button>
-    <button id="rightBtn">➡️</button>
+        <div class="row">
+          <label for="difficulty">Dificuldade</label>
+          <select id="difficulty">
+            <option value="easy">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Difícil</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="sensitivity">Sensibilidade</label>
+          <input id="sensitivity" type="range" min="3" max="12" value="6" />
+        </div>
+
+        <div class="actions">
+          <button id="resumeBtn" class="primary">Continuar ▶️</button>
+          <button id="restartBtn" class="ghost">Reiniciar 🔁</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões fixos -->
+    <button id="pauseBtn" aria-label="Pausar">⏸️</button>
+    <!-- Mostrado apenas no mobile via CSS -->
+    <button id="fullscreenBtn" aria-label="Tela cheia (mobile)">🔲</button>
+
+    <!-- Controles Mobile -->
+    <div id="controls">
+      <button id="leftBtn" aria-label="Esquerda">⬅️</button>
+      <button id="rightBtn" aria-label="Direita">➡️</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
