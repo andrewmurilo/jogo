@@ -1,172 +1,233 @@
+// --- Canvas e contexto ---
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-let player, platforms, score, cameraY, gameOver, gameStarted, paused;
-let keys = { left: false, right: false };
-let moveSpeed = 4;
-let gravity = 0.4;
+// --- Variáveis globais ---
+let player, platforms, springs;
+let gameStarted = false;
+let gameOver = false;
+let isPaused = false;
+let score = 0;
+let sensitivity = 4;
+let difficulty = "normal";
 
-// Elementos
-const pauseMenu = document.getElementById("pauseMenu");
-const difficultySelect = document.getElementById("difficulty");
-const sensitivitySlider = document.getElementById("sensitivity");
-const invisiblePauseBtn = document.getElementById("invisiblePauseBtn");
+const keys = { left: false, right: false };
 
-// Abrir/Fechar pause
-invisiblePauseBtn.addEventListener("click", togglePause);
+// --- Eventos teclado ---
 document.addEventListener("keydown", (e) => {
-  if(e.key === "Escape") togglePause();
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "Escape") togglePause();
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
 });
 
+// --- Controles mobile ---
+document.getElementById("leftBtn").addEventListener("touchstart", () => keys.left = true);
+document.getElementById("leftBtn").addEventListener("touchend", () => keys.left = false);
+document.getElementById("rightBtn").addEventListener("touchstart", () => keys.right = true);
+document.getElementById("rightBtn").addEventListener("touchend", () => keys.right = false);
+
+// --- Pause ---
+document.getElementById("pauseBtn").addEventListener("click", togglePause);
 function togglePause() {
-  if(!gameStarted) return;
-  paused = !paused;
-  pauseMenu.style.display = paused ? "flex" : "none";
-}
-
-function resumeGame() {
-  paused = false;
-  pauseMenu.style.display = "none";
-  setDifficulty();
-  setSensitivity();
-}
-
-function setDifficulty() {
-  const value = difficultySelect.value;
-  gravity = (value==="easy")?0.3: (value==="normal")?0.4:0.6;
-}
-
-function setSensitivity() {
-  moveSpeed = Number(sensitivitySlider.value);
-}
-
-// Controles PC
-document.addEventListener("keydown", (e)=>{
-  if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
-  if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
-});
-document.addEventListener("keyup", (e)=>{
-  if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
-  if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
-});
-
-// Controles celular
-window.addEventListener("deviceorientation", (event)=>{
-  if(!gameStarted||paused) return;
-  if(event.gamma>10){ keys.right=true; keys.left=false; }
-  else if(event.gamma<-10){ keys.left=true; keys.right=false; }
-  else{ keys.left=false; keys.right=false; }
-});
-
-// Criar plataforma
-function createPlatform(x,y,type="normal"){
-  return {x,y,width:70,height:15,type,dx:type==="moving"?2:0,
-    hasSpring: Math.random()<0.3, visible:true, timer:0, alpha:1, fadingOut:false, fadingIn:false};
-}
-
-// Iniciar jogo
-function startGame(){
-  // Primeiro cria plataforma inicial SEM mola para spawn
-  const initialPlatform = createPlatform(canvas.width/2 - 35, canvas.height-50, "normal");
-  initialPlatform.hasSpring = false;
-
-  player={x:initialPlatform.x + 20, y:initialPlatform.y - 30, width:30,height:30,velocityY:0,jumpPower:-10,lastPlatform:null};
-  platforms=[initialPlatform];
-
-  // Cria outras plataformas
-  let y=canvas.height-130;
-  for(let i=0;i<9;i++){
-    platforms.push(createPlatform(Math.random()*(canvas.width-70),y));
-    y-=80;
+  if (!isPaused) {
+    isPaused = true;
+    document.getElementById("pauseMenu").style.display = "flex";
+  } else {
+    resumeGame();
   }
-
-  score=0; cameraY=0; gameOver=false; gameStarted=true; paused=false;
-  document.getElementById("menu").style.display="none";
-  setDifficulty(); setSensitivity();
+}
+function resumeGame() {
+  isPaused = false;
+  document.getElementById("pauseMenu").style.display = "none";
   gameLoop();
 }
 
-// Atualizar jogador
-function updatePlayer(){
-  if(keys.left) player.x-=moveSpeed;
-  if(keys.right) player.x+=moveSpeed;
-  if(player.x+player.width<0) player.x=canvas.width;
-  if(player.x>canvas.width) player.x=-player.width;
+// --- Fullscreen ---
+document.getElementById("fullscreenBtn").addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
 
-  player.velocityY+=gravity;
-  player.y+=player.velocityY;
+// --- Sensibilidade e dificuldade ---
+document.getElementById("sensitivity").addEventListener("input", (e) => {
+  sensitivity = parseInt(e.target.value);
+});
+document.getElementById("difficulty").addEventListener("change", (e) => {
+  difficulty = e.target.value;
+});
 
-  platforms.forEach(p=>{
-    if(!p.visible) return;
+// --- Jogador ---
+function createPlayer() {
+  return {
+    x: canvas.width / 2 - 20,
+    y: canvas.height - 60,
+    width: 40,
+    height: 40,
+    dy: 0,
+    gravity: 0.3,
+    jumpPower: -10,
+    color: "red"
+  };
+}
 
-    if(player.x<p.x+p.width && player.x+player.width>p.x &&
-       player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 &&
-       player.velocityY>0){
+// --- Plataformas ---
+function createPlatforms() {
+  const arr = [];
+  const platformCount = 8;
+  const spacing = canvas.height / platformCount;
 
-      // Se a plataforma tem mola, aplica super pulo independente da posição
-      if(p.hasSpring) player.velocityY=-18;
-      else player.velocityY=player.jumpPower;
+  for (let i = 0; i < platformCount; i++) {
+    let x = Math.random() * (canvas.width - 70);
+    let y = canvas.height - i * spacing - 20;
+    let hasSpring = Math.random() < 0.3; // 30% chance de ter mola
+    arr.push({ x, y, width: 70, height: 15, hasSpring });
+  }
 
-      if(player.lastPlatform!==p){ score++; player.lastPlatform=p; }
+  // Garante que a primeira plataforma está embaixo do player
+  arr[0] = {
+    x: canvas.width / 2 - 35,
+    y: canvas.height - 30,
+    width: 70,
+    height: 15,
+    hasSpring: false
+  };
 
-      if(p.type==="cloud") p.fadingOut=true;
+  return arr;
+}
+
+// --- Molas ---
+function createSpring(x, y) {
+  return { x, y: y - 10, width: 20, height: 20 };
+}
+
+// --- Inicialização ---
+function init() {
+  player = createPlayer();
+  platforms = createPlatforms();
+  springs = platforms.filter(p => p.hasSpring).map(p =>
+    createSpring(p.x + p.width / 2 - 10, p.y)
+  );
+  score = 0;
+  gameOver = false;
+}
+
+// --- Desenho ---
+function drawPlayer() {
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+function drawPlatforms() {
+  ctx.fillStyle = "green";
+  platforms.forEach(p => {
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+  });
+}
+
+function drawSprings() {
+  ctx.fillStyle = "blue";
+  springs.forEach(s => {
+    ctx.fillRect(s.x, s.y, s.width, s.height);
+  });
+}
+
+function drawScore() {
+  document.getElementById("ui").innerText = `Score: ${score}`;
+}
+
+// --- Update jogador ---
+function updatePlayer() {
+  if (keys.left) player.x -= sensitivity;
+  if (keys.right) player.x += sensitivity;
+
+  player.dy += player.gravity;
+  player.y += player.dy;
+
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+  // Colisão com plataformas
+  platforms.forEach(p => {
+    if (
+      player.x + player.width > p.x &&
+      player.x < p.x + p.width &&
+      player.y + player.height >= p.y &&
+      player.y + player.height <= p.y + p.height &&
+      player.dy >= 0
+    ) {
+      player.dy = player.jumpPower;
     }
   });
 
-  if(player.y-cameraY>canvas.height) gameOver=true;
-  if(player.y<canvas.height/2-cameraY) cameraY=player.y-canvas.height/2;
-}
-
-// Atualizar plataformas
-function updatePlatforms(){
-  platforms.forEach(p=>{
-    if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; }
-    if(p.type==="cloud"&&p.fadingOut){ p.alpha-=0.05; if(p.alpha<=0){ p.alpha=0; p.visible=false; p.fadingOut=false; p.timer=Date.now(); } }
-    if(p.type==="cloud"&&!p.visible){ if(Date.now()-p.timer>3000){ p.visible=true; p.fadingIn=true; } }
-    if(p.type==="cloud"&&p.fadingIn){ p.alpha+=0.05; if(p.alpha>=1){ p.alpha=1; p.fadingIn=false; } }
+  // Colisão com molas (pulo mais alto)
+  springs.forEach(s => {
+    if (
+      player.x + player.width > s.x &&
+      player.x < s.x + s.width &&
+      player.y + player.height >= s.y &&
+      player.y + player.height <= s.y + s.height &&
+      player.dy >= 0
+    ) {
+      player.dy = player.jumpPower * 1.5;
+    }
   });
 
-  platforms=platforms.filter(p=>p.y-cameraY<canvas.height+100);
-
-  while(platforms.length<10){
-    let px=Math.random()*(canvas.width-70);
-    let py=platforms[platforms.length-1].y-80;
-    let types=(py<-2500)?["normal","moving","cloud"]:["normal","moving"];
-    platforms.push(createPlatform(px,py,types[Math.floor(Math.random()*types.length)]));
+  if (player.y > canvas.height) {
+    gameOver = true;
   }
 }
 
-// Desenhar jogador
-function drawPlayer(){ ctx.fillStyle="#ff0000"; ctx.fillRect(player.x,player.y-cameraY,player.width,player.height); }
-
-// Desenhar plataformas
-function drawPlatforms(){
-  platforms.forEach(p=>{
-    if(!p.visible && !p.fadingIn) return;
-    ctx.save(); ctx.globalAlpha=p.alpha;
-    if(p.type==="normal") ctx.fillStyle="#4caf50";
-    if(p.type==="moving") ctx.fillStyle="#2196f3";
-    if(p.type==="cloud") ctx.fillStyle="#ccc";
-    ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-    if(p.hasSpring){ ctx.fillStyle="#000"; ctx.fillRect(p.x+p.width/2-10,p.y-12-cameraY,20,12); }
-    ctx.restore();
+// --- Update plataformas ---
+function updatePlatforms() {
+  platforms.forEach(p => {
+    p.y += 2;
+    if (p.y > canvas.height) {
+      p.y = -20;
+      p.x = Math.random() * (canvas.width - p.width);
+      p.hasSpring = Math.random() < 0.3;
+      if (p.hasSpring) {
+        springs.push(createSpring(p.x + p.width / 2 - 10, p.y));
+      }
+      score++;
+    }
   });
+  springs = springs.filter(s => s.y <= canvas.height);
+  springs.forEach(s => (s.y += 2));
 }
 
-// UI
-function drawUI(){ document.getElementById("ui").innerText="Score: "+score; }
+// --- Loop principal ---
+function gameLoop() {
+  if (isPaused) return;
 
-// Loop principal
-function gameLoop(){
-  if(!paused){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(!gameOver){
-      updatePlayer(); updatePlatforms(); drawPlayer(); drawPlatforms(); drawUI();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (gameStarted) {
+    if (!gameOver) {
+      updatePlayer();
+      updatePlatforms();
+      drawPlayer();
+      drawPlatforms();
+      drawSprings();
+      drawScore();
       requestAnimationFrame(gameLoop);
     } else {
-      document.getElementById("menu").style.display="flex";
-      document.querySelector("#menu h1").innerText="Game Over - Score: "+score;
-      document.querySelector("#menu button").innerText="Restart";
+      ctx.fillStyle = "#000";
+      ctx.font = "30px Arial";
+      ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
     }
-  } else { requestAnimationFrame(gameLoop); }
+  }
+}
+
+// --- Start ---
+function startGame() {
+  document.getElementById("menu").style.display = "none";
+  init();
+  gameStarted = true;
+  gameLoop();
 }

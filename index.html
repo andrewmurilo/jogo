@@ -9,6 +9,13 @@
   <canvas id="gameCanvas" width="400" height="600"></canvas>
   <div id="ui">Score: 0</div>
 
+  <!-- Menu inicial -->
+  <div id="menu">
+    <h1>🎮 Escalada Extrema</h1>
+    <button onclick="startGame()">▶️ Iniciar Jogo</button>
+  </div>
+
+  <!-- Menu de pause -->
   <div id="pauseMenu">
     <h2>⏸️ Jogo Pausado</h2>
     <button onclick="resumeGame()">▶️ Continuar</button>
@@ -23,11 +30,14 @@
     <input type="range" id="sensitivity" min="2" max="10" value="4">
   </div>
 
-  <button id="invisiblePauseBtn"></button>
+  <!-- Botões fixos na tela -->
+  <button id="pauseBtn">⏸️</button>
+  <button id="fullscreenBtn">🔲</button>
 
-  <div id="menu">
-    <h1>🎮 Escalada Extrema</h1>
-    <button onclick="startGame()">Iniciar Jogo</button>
+  <!-- Controles mobile -->
+  <div id="controls">
+    <button id="leftBtn">⬅️</button>
+    <button id="rightBtn">➡️</button>
   </div>
 
   <script src="script.js"></script>
