@@ -8,25 +8,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Container para centralizar e isolar fullscreen no mobile -->
   <div id="gameRoot">
-    <canvas id="gameCanvas" width="400" height="700"></canvas>
+    <canvas id="gameCanvas" width="400" height="700" aria-label="Canvas do jogo"></canvas>
 
-    <!-- HUD -->
     <div id="ui">Score: 0</div>
 
-    <!-- Menus -->
+    <!-- Main menu -->
     <div id="mainMenu" class="overlay">
       <div class="card">
         <h1>🎮 Escalada Extrema</h1>
-        <button id="startBtn" class="primary">Iniciar</button>
-        <div class="hint">Use ⬅️ ➡️ no teclado ou botões na tela (mobile).</div>
+        <button id="startBtn" class="primary">▶ Iniciar</button>
+        <div class="hint">Use ← → no teclado, giroscópio no celular, ou toques nos botões.</div>
       </div>
     </div>
 
+    <!-- Pause / Options -->
     <div id="pauseMenu" class="overlay hidden">
       <div class="card">
-        <h2>⏸️ Pausado</h2>
+        <h2 id="pauseTitle">⏸ Pausado</h2>
 
         <div class="row">
           <label for="difficulty">Dificuldade</label>
@@ -43,21 +42,21 @@
         </div>
 
         <div class="actions">
-          <button id="resumeBtn" class="primary">Continuar ▶️</button>
-          <button id="restartBtn" class="ghost">Reiniciar 🔁</button>
+          <button id="resumeBtn" class="primary">▶ Continuar</button>
+          <button id="restartBtn" class="ghost">🔁 Reiniciar</button>
         </div>
       </div>
     </div>
 
-    <!-- Botões fixos -->
-    <button id="pauseBtn" aria-label="Pausar">⏸️</button>
-    <!-- Mostrado apenas no mobile via CSS -->
-    <button id="fullscreenBtn" aria-label="Tela cheia (mobile)">🔲</button>
+    <!-- Fixed buttons -->
+    <button id="pauseBtn" class="fixedBtn" aria-label="pause">⏸</button>
+    <button id="fullscreenBtn" class="fixedBtn mobileOnly" aria-label="fullscreen">🔲</button>
 
-    <!-- Controles Mobile -->
-    <div id="controls">
-      <button id="leftBtn" aria-label="Esquerda">⬅️</button>
-      <button id="rightBtn" aria-label="Direita">➡️</button>
+    <!-- Mobile controls -->
+    <div id="controls" class="mobileOnly">
+      <button id="leftBtn" class="control">◀</button>
+      <div class="touchSpacer"></div>
+      <button id="rightBtn" class="control">▶</button>
     </div>
   </div>
 
