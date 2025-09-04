@@ -18,7 +18,6 @@ document.addEventListener("keydown", (e) => {
   if(e.key === "Escape") togglePause();
 });
 
-// Funções de pause
 function togglePause() {
   if(!gameStarted) return;
   paused = !paused;
@@ -32,12 +31,9 @@ function resumeGame() {
   setSensitivity();
 }
 
-// Funções de dificuldade e sensibilidade
 function setDifficulty() {
   const value = difficultySelect.value;
-  if(value==="easy") gravity=0.3;
-  else if(value==="normal") gravity=0.4;
-  else if(value==="hard") gravity=0.6;
+  gravity = (value==="easy")?0.3: (value==="normal")?0.4:0.6;
 }
 
 function setSensitivity() {
@@ -70,8 +66,20 @@ function createPlatform(x,y,type="normal"){
 
 // Iniciar jogo
 function startGame(){
-  player={x:canvas.width/2-15, y:canvas.height-50, width:30,height:30,velocityY:0,jumpPower:-10,lastPlatform:null};
-  platforms=[]; let y=canvas.height-20; for(let i=0;i<10;i++){ platforms.push(createPlatform(Math.random()*(canvas.width-70),y)); y-=80; }
+  // Primeiro cria plataforma inicial SEM mola para spawn
+  const initialPlatform = createPlatform(canvas.width/2 - 35, canvas.height-50, "normal");
+  initialPlatform.hasSpring = false;
+
+  player={x:initialPlatform.x + 20, y:initialPlatform.y - 30, width:30,height:30,velocityY:0,jumpPower:-10,lastPlatform:null};
+  platforms=[initialPlatform];
+
+  // Cria outras plataformas
+  let y=canvas.height-130;
+  for(let i=0;i<9;i++){
+    platforms.push(createPlatform(Math.random()*(canvas.width-70),y));
+    y-=80;
+  }
+
   score=0; cameraY=0; gameOver=false; gameStarted=true; paused=false;
   document.getElementById("menu").style.display="none";
   setDifficulty(); setSensitivity();
@@ -84,15 +92,23 @@ function updatePlayer(){
   if(keys.right) player.x+=moveSpeed;
   if(player.x+player.width<0) player.x=canvas.width;
   if(player.x>canvas.width) player.x=-player.width;
+
   player.velocityY+=gravity;
   player.y+=player.velocityY;
 
   platforms.forEach(p=>{
     if(!p.visible) return;
-    if(player.x<p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.velocityY>0){
-      if(p.hasSpring && player.x+player.width/2>p.x+p.width/2-10 && player.x+player.width/2<p.x+p.width/2+10) player.velocityY=-18;
+
+    if(player.x<p.x+p.width && player.x+player.width>p.x &&
+       player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 &&
+       player.velocityY>0){
+
+      // Se a plataforma tem mola, aplica super pulo independente da posição
+      if(p.hasSpring) player.velocityY=-18;
       else player.velocityY=player.jumpPower;
+
       if(player.lastPlatform!==p){ score++; player.lastPlatform=p; }
+
       if(p.type==="cloud") p.fadingOut=true;
     }
   });

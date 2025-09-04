@@ -1,40 +1,25 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<div id="ui">Score: 0</div>
 
-  <div id="ui">Score: 0</div>
+<div id="pauseMenu">
+  <h2>Jogo Pausado</h2>
+  <button onclick="resumeGame()">Continuar</button>
+  <h3>Opções</h3>
+  <label for="difficulty">Dificuldade:</label>
+  <select id="difficulty">
+    <option value="easy">Fácil</option>
+    <option value="normal" selected>Normal</option>
+    <option value="hard">Difícil</option>
+  </select>
+  <label for="sensitivity">Sensibilidade:</label>
+  <input type="range" id="sensitivity" min="2" max="10" value="4">
+</div>
 
-  <!-- Tela de pause e opções -->
-  <div id="pauseMenu">
-    <h2>Jogo Pausado</h2>
-    <button onclick="resumeGame()">Continuar</button>
-    <h3>Opções</h3>
-    <label for="difficulty">Dificuldade:</label>
-    <select id="difficulty">
-      <option value="easy">Fácil</option>
-      <option value="normal" selected>Normal</option>
-      <option value="hard">Difícil</option>
-    </select>
+<button id="invisiblePauseBtn"></button>
 
-    <label for="sensitivity">Sensibilidade:</label>
-    <input type="range" id="sensitivity" min="2" max="10" value="4">
-  </div>
+<div id="menu">
+  <h1>Escalada Extrema</h1>
+  <button onclick="startGame()">Start</button>
+</div>
 
-  <!-- Botão invisível para abrir pause -->
-  <button id="invisiblePauseBtn"></button>
-
-  <div id="menu">
-    <h1>Escalada Extrema</h1>
-    <button onclick="startGame()">Start</button>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+<script src="script.js"></script>
