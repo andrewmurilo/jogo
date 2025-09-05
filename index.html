@@ -1,47 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="gameRoot">
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" width="400" height="700" aria-label="Canvas do jogo"></canvas>
+
     <div id="ui">Score: 0</div>
 
-    <!-- Menu inicial -->
-    <div id="mainMenu" class="menu">
-      <h1>Escalada Extrema</h1>
-      <button id="startBtn">▶ Iniciar</button>
-      <label>Dificuldade:
-        <select id="difficulty">
-          <option value="easy">Fácil</option>
-          <option value="normal" selected>Normal</option>
-          <option value="hard">Difícil</option>
-        </select>
-      </label>
-      <label>Sensibilidade:
-        <input type="range" id="sensitivity" min="3" max="10" value="6">
-      </label>
+    <!-- Main menu -->
+    <div id="mainMenu" class="overlay">
+      <div class="card">
+        <h1>🎮 Escalada Extrema</h1>
+
+        <div class="row">
+          <label for="difficulty">Dificuldade</label>
+          <select id="difficulty">
+            <option value="easy">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Difícil</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="sensitivity">Sensibilidade</label>
+          <input id="sensitivity" type="range" min="3" max="12" value="6" />
+        </div>
+
+        <div class="actions">
+          <button id="startBtn" class="primary">▶ Iniciar</button>
+          <button id="startBtnNoFullscreen" class="ghost" style="display:none">Iniciar (sem fullscreen)</button>
+        </div>
+
+        <p class="hint">Use ← → no teclado, giroscópio ou os botões na tela (mobile).</p>
+      </div>
     </div>
 
-    <!-- Menu pausa / game over -->
-    <div id="pauseMenu" class="menu hidden">
-      <h2 id="pauseTitle">⏸ Pausado</h2>
-      <button id="resumeBtn">▶ Continuar</button>
-      <button id="restartBtn">↻ Reiniciar</button>
+    <!-- Pause / Game Over menu -->
+    <div id="pauseMenu" class="overlay hidden">
+      <div class="card">
+        <h2 id="pauseTitle">⏸ Pausado</h2>
+
+        <div class="actions">
+          <button id="resumeBtn" class="primary">▶ Continuar</button>
+          <button id="restartBtn" class="ghost">↻ Reiniciar</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Controles mobile -->
-    <div id="controls">
-      <button id="leftBtn">⮜</button>
-      <button id="pauseBtn">⏸</button>
-      <button id="rightBtn">⮞</button>
-      <button id="fullscreenBtn">⛶</button>
+    <!-- Fixed buttons -->
+    <button id="pauseBtn" class="fixedBtn" aria-label="Pausar">⏸</button>
+    <button id="fullscreenBtn" class="fixedBtn mobileOnly" aria-label="Tela cheia">🔲</button>
+
+    <!-- Mobile controls -->
+    <div id="controls" class="mobileOnly">
+      <button id="leftBtn" class="control">◀</button>
+      <button id="rightBtn" class="control">▶</button>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
