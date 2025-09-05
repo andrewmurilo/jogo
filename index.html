@@ -9,14 +9,15 @@
 </head>
 <body>
   <div id="gameRoot">
-    <canvas id="gameCanvas" width="400" height="700" aria-label="Canvas do jogo"></canvas>
+    <canvas id="gameCanvas" width="400" height="700"></canvas>
 
-    <div id="ui">Score: 0</div>
+    <div id="ui">Score: 0 | Recorde: 0</div>
 
     <!-- Main menu -->
     <div id="mainMenu" class="overlay">
       <div class="card">
         <h1>🎮 Escalada Extrema</h1>
+        <p id="bestScoreText">Recorde: 0</p>
 
         <div class="row">
           <label for="difficulty">Dificuldade</label>
@@ -34,10 +35,7 @@
 
         <div class="actions">
           <button id="startBtn" class="primary">▶ Iniciar</button>
-          <button id="startNoFs" class="ghost" style="display:none">Iniciar (sem fullscreen)</button>
         </div>
-
-        <p class="hint">Use ← → no teclado, giroscópio no celular ou os botões na tela.</p>
       </div>
     </div>
 
@@ -45,6 +43,21 @@
     <div id="pauseMenu" class="overlay hidden">
       <div class="card">
         <h2 id="pauseTitle">⏸ Pausado</h2>
+        <p id="pauseBest">Recorde: 0</p>
+
+        <div class="row">
+          <label for="pauseDifficulty">Dificuldade</label>
+          <select id="pauseDifficulty">
+            <option value="easy">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Difícil</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="pauseSensitivity">Sensibilidade</label>
+          <input id="pauseSensitivity" type="range" min="3" max="12" value="6" />
+        </div>
 
         <div class="actions">
           <button id="resumeBtn" class="primary">▶ Continuar</button>
@@ -55,7 +68,6 @@
 
     <!-- Fixed buttons -->
     <button id="pauseBtn" class="fixedBtn" aria-label="Pausar">⏸</button>
-    <button id="fullscreenBtn" class="fixedBtn mobileOnly" aria-label="Tela cheia">🔲</button>
 
     <!-- Mobile controls -->
     <div id="controls" class="mobileOnly">
