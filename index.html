@@ -1,66 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport"
-        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Escalada Extrema</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jogo de Pulo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="gameRoot">
-    <canvas id="gameCanvas" width="400" height="700" aria-label="Canvas do jogo"></canvas>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
 
-    <div id="ui">Score: 0</div>
+    <!-- Placar -->
+    <div id="scoreBoard">Score: 0</div>
 
-    <!-- Main menu -->
-    <div id="mainMenu" class="overlay">
-      <div class="card">
-        <h1>🎮 Escalada Extrema</h1>
-
-        <div class="row">
-          <label for="difficulty">Dificuldade</label>
-          <select id="difficulty">
-            <option value="easy">Fácil</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Difícil</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <label for="sensitivity">Sensibilidade</label>
-          <input id="sensitivity" type="range" min="3" max="12" value="6" />
-        </div>
-
-        <div class="actions">
-          <button id="startBtn" class="primary">▶ Iniciar</button>
-          <button id="startBtnNoFullscreen" class="ghost" style="display:none">Iniciar (sem fullscreen)</button>
-        </div>
-
-        <p class="hint">Use ← → no teclado, giroscópio ou os botões na tela (mobile).</p>
-      </div>
+    <!-- Menu inicial -->
+    <div id="startMenu">
+      <h1>Jogo de Pulo</h1>
+      <button id="startBtn">Iniciar</button>
     </div>
 
-    <!-- Pause / Game Over menu -->
-    <div id="pauseMenu" class="overlay hidden">
-      <div class="card">
-        <h2 id="pauseTitle">⏸ Pausado</h2>
-
-        <div class="actions">
-          <button id="resumeBtn" class="primary">▶ Continuar</button>
-          <button id="restartBtn" class="ghost">↻ Reiniciar</button>
-        </div>
-      </div>
+    <!-- Menu de pausa -->
+    <div id="pauseMenu">
+      <h2>Pause</h2>
+      <button id="resumeBtn">Retomar</button>
+      <button id="restartBtn">Reiniciar</button>
     </div>
 
-    <!-- Fixed buttons -->
-    <button id="pauseBtn" class="fixedBtn" aria-label="Pausar">⏸</button>
-    <button id="fullscreenBtn" class="fixedBtn mobileOnly" aria-label="Tela cheia">🔲</button>
+    <!-- Botão de pausa -->
+    <button id="pauseBtn">II</button>
 
-    <!-- Mobile controls -->
-    <div id="controls" class="mobileOnly">
-      <button id="leftBtn" class="control">◀</button>
-      <button id="rightBtn" class="control">▶</button>
+    <!-- Controles mobile -->
+    <div class="controls">
+      <button id="leftBtn">◀</button>
+      <button id="rightBtn">▶</button>
     </div>
   </div>
 
