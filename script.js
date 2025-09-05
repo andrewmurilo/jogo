@@ -39,7 +39,6 @@ function setDifficulty(mode){
 }
 
 function createPlayer(x,y){return {x,y,w:30,h:30,vy:0};}
-
 function createPlatform(x,y,type="normal"){
   return {x,y,w:config.platformW,h:config.platformH,type,hasSpring:Math.random()<0.25,visible:true,timer:0,dx:type==="moving"?2:0};
 }
@@ -54,7 +53,7 @@ function buildWorld(){
   let y=p0.y-config.spawnGap;
   for(let i=0;i<12;i++){
     let type="normal";
-    if(score>=2500 && Math.random()<0.25) type="cloud";
+    if(Math.random()<0.25 && score>=2500) type="cloud";
     else if(Math.random()<0.25) type="moving";
     platforms.push(createPlatform(Math.random()*(canvas.width-config.platformW),y,type));
     y-=config.spawnGap;
@@ -90,7 +89,7 @@ function updatePlatforms(){
   while(platforms.length<14){
     const highest=Math.min(...platforms.map(p=>p.y));
     let type="normal";
-    if(score>=2500 && Math.random()<0.25) type="cloud";
+    if(Math.random()<0.25 && score>=2500) type="cloud";
     else if(Math.random()<0.25) type="moving";
     platforms.push(createPlatform(Math.random()*(canvas.width-config.platformW),highest-config.spawnGap,type));
   }
@@ -101,7 +100,7 @@ function draw(){
   ctx.fillStyle="white";ctx.fillRect(player.x,player.y-cameraY,player.w,player.h);
   platforms.forEach(p=>{
     if(!p.visible) return;
-    ctx.fillStyle=p.hasSpring?"#ff0":p.type==="cloud"?"#ccc":p.type==="moving"?"#2196f3":"green";
+    ctx.fillStyle=p.hasSpring?"#ffeb3b":p.type==="cloud"?"#ccc":p.type==="moving"?"#2196f3":"#4caf50";
     ctx.fillRect(p.x,p.y-cameraY,p.w,p.h);
     if(p.hasSpring){ctx.fillStyle="#000";ctx.fillRect(p.x+p.w/2-8,p.y-6-cameraY,16,6);}
   });
@@ -114,23 +113,22 @@ function startGame(){setDifficulty(difficultySel.value);buildWorld();mainMenu.cl
 function togglePause(){if(!gameStarted) return;paused=!paused;pauseMenu.classList.toggle('hidden',!paused);pauseDifficulty.value=difficultySel.value;pauseSensitivity.value=sensitivitySlider.value;pauseBest.textContent="Recorde: "+bestScore;}
 function endGame(){paused=true;gameOver=true;if(score>bestScore){bestScore=score;localStorage.setItem("bestScore",bestScore);}pauseMenu.classList.remove('hidden');pauseTitle.textContent="💀 Game Over — Score: "+score;pauseBest.textContent="Recorde: "+bestScore;bestScoreText.textContent="Recorde: "+bestScore;}
 
-// Events
+// Eventos
 startBtn.onclick=startGame;
 pauseBtn.onclick=togglePause;
 resumeBtn.onclick=()=>{paused=false;pauseMenu.classList.add('hidden');};
-restartBtn.onclick=()=>{startGame();};
-difficultySel.onchange=()=>{setDifficulty(difficultySel.value);};
-sensitivitySlider.oninput=()=>{config.moveSpeed=+sensitivitySlider.value;};
-pauseDifficulty.onchange=()=>{difficultySel.value=pauseDifficulty.value;setDifficulty(pauseDifficulty.value);};
-pauseSensitivity.oninput=()=>{sensitivitySlider.value=pauseSensitivity.value;config.moveSpeed=+pauseSensitivity.value;};
-window.onkeydown=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;if(e.key==="ArrowRight"||e.key==="d")keys.right=true;if(e.key==="Escape")togglePause();};
-window.onkeyup=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;if(e.key==="ArrowRight"||e.key==="d")keys.right=false;};
+restartBtn.onclick=startGame;
+difficultySel.onchange=()=>setDifficulty(difficultySel.value);
+sensitivitySlider.oninput=()=>config.moveSpeed=+sensitivitySlider.value;
+pauseDifficulty.onchange=()=>{difficultySel.value=pauseDifficulty.value;setDifficulty(pauseDifficulty.value);}
+pauseSensitivity.oninput=()=>{sensitivitySlider.value=pauseSensitivity.value;config.moveSpeed=+pauseSensitivity.value;}
+window.onkeydown=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;if(e.key==="ArrowRight"||e.key==="d")keys.right=true;if(e.key==="Escape")togglePause();}
+window.onkeyup=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;if(e.key==="ArrowRight"||e.key==="d")keys.right=false;}
 
 [leftBtn,rightBtn].forEach(btn=>{
   btn.addEventListener("touchstart",e=>{e.preventDefault();keys[btn.id==="leftBtn"?"left":"right"]=true;},{passive:false});
   btn.addEventListener("touchend",()=>{keys[btn.id==="leftBtn"?"left":"right"]=false;});
 });
 
-// inicializa
 bestScoreText.textContent="Recorde: "+bestScore;
 loop();
