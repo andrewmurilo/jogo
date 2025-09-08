@@ -1,29 +1,29 @@
-body {
+body, html {
   margin: 0;
-  font-family: Arial, sans-serif;
+  padding: 0;
   overflow: hidden;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
   background: linear-gradient(#87ceeb, #ffffff);
 }
 
 canvas {
   display: block;
-  margin: auto;
+  margin: 0 auto;
   background-color: #a0d8f0;
-  touch-action: manipulation;
 }
 
 /* Tela inicial */
 #startScreen {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 100;
 }
 
 #startContent {
@@ -37,39 +37,47 @@ canvas {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-#startBtn, #restartBtn, #pauseBtn, #backBtn {
+button {
   font-size: 18px;
-  padding: 10px 30px;
+  padding: 10px 20px;
   border: none;
   border-radius: 10px;
   background-color: #4caf50;
-  color: white;
+  color: #fff;
   cursor: pointer;
-  transition: all 0.3s;
   margin: 5px;
+  transition: 0.3s;
 }
 
-#startBtn:hover, #restartBtn:hover, #pauseBtn:hover, #backBtn:hover {
+button:hover {
   transform: scale(1.05);
 }
 
-#restartBtn, #gameButtons {
+#restartBtn { display: none; position: fixed; top: 10px; right: 10px; z-index: 10; }
+
+#gameButtons {
   position: fixed;
   top: 10px;
-  right: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
   z-index: 10;
 }
 
-#restartBtn { display: none; }
-
-#gameButtons {
+#mobileControls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  z-index: 10;
 }
 
-#gameButtons label {
-  color: #000;
-  font-size: 14px;
-  margin-top: 5px;
+#mobileControls button {
+  font-size: 18px;
+  padding: 15px;
+  margin: 0 5px;
+  border-radius: 10px;
+  background-color: #ff9800;
+  color: #fff;
 }

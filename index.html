@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Escalada Extrema</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,16 +17,19 @@
     </div>
   </div>
 
+  <!-- Botões no celular -->
+  <div id="mobileControls">
+    <button id="pauseMobileBtn">Pause</button>
+  </div>
+
   <!-- Botões do jogo -->
   <div id="gameButtons">
-    <button id="pauseBtn">Pause</button>
     <button id="backBtn">Voltar ao Início</button>
-    <label>Sensibilidade: 
+    <label>Sensibilidade:
       <input type="range" id="sensitivity" min="1" max="10" value="4">
     </label>
   </div>
 
-  <!-- Botão de reiniciar -->
   <button id="restartBtn">Reiniciar</button>
 
   <!-- Sons -->
