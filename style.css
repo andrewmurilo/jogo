@@ -2,8 +2,6 @@ body, html {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  width: 100%;
-  height: 100%;
   font-family: Arial, sans-serif;
   background: linear-gradient(#87ceeb, #ffffff);
 }
@@ -12,6 +10,7 @@ canvas {
   display: block;
   margin: 0 auto;
   background-color: #a0d8f0;
+  touch-action: manipulation;
 }
 
 /* Tela inicial */
@@ -25,59 +24,25 @@ canvas {
   align-items: center;
   z-index: 100;
 }
+#startContent { text-align:center; color:#fff; }
+#startContent h1 { font-size:3em; margin-bottom:30px; text-shadow:2px 2px 4px rgba(0,0,0,0.5); }
 
-#startContent {
-  text-align: center;
-  color: #fff;
-}
+button { font-size: 18px; padding:10px 20px; border:none; border-radius:10px; background-color:#4caf50; color:#fff; cursor:pointer; margin:5px; transition:0.3s; }
+button:hover { transform: scale(1.05); }
 
-#startContent h1 {
-  font-size: 3em;
-  margin-bottom: 30px;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
+#restartBtn { display:none; position: fixed; top:10px; right:10px; z-index:10; }
+#mobileControls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display:flex; z-index:10; }
+#mobileControls button { font-size:18px; padding:15px; margin:0 5px; border-radius:10px; background-color:#ff9800; color:#fff; }
 
-button {
-  font-size: 18px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  background-color: #4caf50;
-  color: #fff;
-  cursor: pointer;
-  margin: 5px;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-#restartBtn { display: none; position: fixed; top: 10px; right: 10px; z-index: 10; }
-
-#gameButtons {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-}
-
-#mobileControls {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  z-index: 10;
-}
-
-#mobileControls button {
-  font-size: 18px;
-  padding: 15px;
-  margin: 0 5px;
-  border-radius: 10px;
-  background-color: #ff9800;
-  color: #fff;
+#pauseMenu {
+  display: none;
+  position: absolute;
+  top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  background: rgba(0,0,0,0.7);
+  color:#fff;
+  padding:20px;
+  border-radius:15px;
+  text-align:center;
+  z-index:100;
 }
