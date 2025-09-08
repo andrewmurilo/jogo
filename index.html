@@ -1,74 +1,73 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Escalada Extrema</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Escalada Extrema</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="gameRoot">
-  <canvas id="gameCanvas" width="400" height="700"></canvas>
-  <div id="ui">Score: 0 | Recorde: 0</div>
+  <div id="gameRoot">
+    <canvas id="gameCanvas" width="400" height="700"></canvas>
+    <div id="ui">Score: 0 | Recorde: 0</div>
 
-  <!-- Menu inicial -->
-  <div id="mainMenu" class="overlay">
-    <div class="card">
-      <h1>🎮 Escalada Extrema</h1>
-      <p id="bestScoreText">Recorde: 0</p>
-      <div class="row">
-        <label for="difficulty">Dificuldade</label>
-        <select id="difficulty">
-          <option value="easy">Fácil</option>
-          <option value="normal" selected>Normal</option>
-          <option value="hard">Difícil</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="sensitivity">Sensibilidade</label>
-        <input id="sensitivity" type="range" min="3" max="12" value="6">
-      </div>
-      <div class="actions">
-        <button id="startBtn" class="primary">▶ Iniciar</button>
+    <!-- Menu inicial -->
+    <div id="mainMenu" class="overlay">
+      <div class="card">
+        <h1>🎮 Escalada Extrema</h1>
+        <p id="bestScoreText">Recorde: 0</p>
+        <div class="row">
+          <label for="difficulty">Dificuldade</label>
+          <select id="difficulty">
+            <option value="easy">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Difícil</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="sensitivity">Sensibilidade</label>
+          <input id="sensitivity" type="range" min="3" max="12" value="6">
+        </div>
+        <div class="actions">
+          <button id="startBtn" class="primary">▶ Iniciar</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Pause/Game Over -->
-  <div id="pauseMenu" class="overlay hidden">
-    <div class="card">
-      <h2 id="pauseTitle">⏸ Pausado</h2>
-      <p id="pauseBest">Recorde: 0</p>
-      <div class="row">
-        <label for="pauseDifficulty">Dificuldade</label>
-        <select id="pauseDifficulty">
-          <option value="easy">Fácil</option>
-          <option value="normal" selected>Normal</option>
-          <option value="hard">Difícil</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="pauseSensitivity">Sensibilidade</label>
-        <input id="pauseSensitivity" type="range" min="3" max="12" value="6">
-      </div>
-      <div class="actions">
-        <button id="resumeBtn" class="primary">▶ Continuar</button>
-        <button id="restartBtn" class="ghost">↻ Reiniciar</button>
+    <!-- Pause/Game Over -->
+    <div id="pauseMenu" class="overlay hidden">
+      <div class="card">
+        <h2 id="pauseTitle">⏸ Pausado</h2>
+        <p id="pauseBest">Recorde: 0</p>
+        <div class="row">
+          <label for="pauseDifficulty">Dificuldade</label>
+          <select id="pauseDifficulty">
+            <option value="easy">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Difícil</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="pauseSensitivity">Sensibilidade</label>
+          <input id="pauseSensitivity" type="range" min="3" max="12" value="6">
+        </div>
+        <div class="actions">
+          <button id="resumeBtn" class="primary">▶ Continuar</button>
+          <button id="restartBtn" class="ghost">↻ Reiniciar</button>
+        </div>
       </div>
     </div>
+
+    <!-- Botão de pause -->
+    <button id="pauseBtn" class="fixedBtn">⏸</button>
+
+    <!-- Controles mobile -->
+    <div id="controls" class="mobileOnly">
+      <button id="leftBtn" class="control">◀</button>
+      <div class="touchSpacer"></div>
+      <button id="rightBtn" class="control">▶</button>
+    </div>
   </div>
-
-  <!-- Botão de pause -->
-  <button id="pauseBtn" class="fixedBtn" aria-label="Pausar">⏸</button>
-
-  <!-- Controles mobile -->
-  <div id="controls" class="mobileOnly">
-    <button id="leftBtn" class="control">◀</button>
-    <div class="touchSpacer"></div>
-    <button id="rightBtn" class="control">▶</button>
-  </div>
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -29,7 +29,7 @@ let player, platforms;
 const keys={left:false,right:false};
 
 const config={
-moveSpeed:6,gravity:0.45,jump:-11,platformW:70,platformH:14,spawnGap:90
+  moveSpeed:6,gravity:0.45,jump:-11,platformW:70,platformH:14,spawnGap:90
 };
 
 function setDifficulty(mode){
@@ -113,7 +113,6 @@ function startGame(){setDifficulty(difficultySel.value);buildWorld();mainMenu.cl
 function togglePause(){if(!gameStarted) return;paused=!paused;pauseMenu.classList.toggle('hidden',!paused);pauseDifficulty.value=difficultySel.value;pauseSensitivity.value=sensitivitySlider.value;pauseBest.textContent="Recorde: "+bestScore;}
 function endGame(){paused=true;gameOver=true;if(score>bestScore){bestScore=score;localStorage.setItem("bestScore",bestScore);}pauseMenu.classList.remove('hidden');pauseTitle.textContent="💀 Game Over — Score: "+score;pauseBest.textContent="Recorde: "+bestScore;bestScoreText.textContent="Recorde: "+bestScore;}
 
-// Eventos
 startBtn.onclick=startGame;
 pauseBtn.onclick=togglePause;
 resumeBtn.onclick=()=>{paused=false;pauseMenu.classList.add('hidden');};
@@ -125,10 +124,12 @@ pauseSensitivity.oninput=()=>{sensitivitySlider.value=pauseSensitivity.value;con
 window.onkeydown=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;if(e.key==="ArrowRight"||e.key==="d")keys.right=true;if(e.key==="Escape")togglePause();}
 window.onkeyup=e=>{if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;if(e.key==="ArrowRight"||e.key==="d")keys.right=false;}
 
-[leftBtn,rightBtn].forEach(btn=>{
-  btn.addEventListener("touchstart",e=>{e.preventDefault();keys[btn.id==="leftBtn"?"left":"right"]=true;},{passive:false});
-  btn.addEventListener("touchend",()=>{keys[btn.id==="leftBtn"?"left":"right"]=false;});
-});
+if(leftBtn&&rightBtn){
+  [leftBtn,rightBtn].forEach(btn=>{
+    btn.addEventListener("touchstart",e=>{e.preventDefault();keys[btn.id==="leftBtn"?"left":"right"]=true;},{passive:false});
+    btn.addEventListener("touchend",()=>{keys[btn.id==="leftBtn"?"left":"right"]=false;});
+  });
+}
 
 bestScoreText.textContent="Recorde: "+bestScore;
 loop();

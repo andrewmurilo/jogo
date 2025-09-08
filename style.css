@@ -1,14 +1,10 @@
-:root{
+:root {
   --bg: linear-gradient(to top, #87ceeb, #e0f7fa);
   --card-bg:#1f2937;
   --primary:#0072ff;
   --primary2:#00c6ff;
   --danger:#ff4e50;
   --text:#f0f0f0;
-  --platform-normal:#4caf50;
-  --platform-moving:#2196f3;
-  --platform-cloud:#ccc;
-  --spring:#ffeb3b;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
