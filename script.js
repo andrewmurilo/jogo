@@ -13,7 +13,6 @@ let player = {
   velocityY: 0,
   gravity: 0.4,
   jumpPower: -10,
-  lastPlatform: null,
 };
 
 // Variáveis globais
@@ -74,13 +73,11 @@ function resetGame() {
   player.x = canvas.width / 2 - 20;
   player.y = canvas.height - 80;
   player.velocityY = 0;
-  player.lastPlatform = null;
   score = 0;
   gameOver = false;
   cameraY = 0;
   platforms = [];
 
-  // plataforma inicial
   platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
 
   for (let i = 1; i < 7; i++) {
@@ -114,7 +111,7 @@ function updatePlayer() {
     ) {
       if (p.hasSpring) {
         player.velocityY = -18;
-        score += 2; // mais pontos pela mola
+        score += 2;
       } else {
         player.velocityY = player.jumpPower;
         score++;
@@ -125,13 +122,8 @@ function updatePlayer() {
     }
   });
 
-  if (player.y - cameraY > canvas.height) {
-    gameOver = true;
-  }
-
-  if (player.y < canvas.height / 2 - cameraY) {
-    cameraY = player.y - canvas.height / 2;
-  }
+  if (player.y - cameraY > canvas.height) gameOver = true;
+  if (player.y < canvas.height / 2 - cameraY) cameraY = player.y - canvas.height / 2;
 }
 
 // Atualizar plataformas
@@ -200,7 +192,7 @@ function gameLoop() {
   }
 }
 
-// Pausar
+// Pause
 function togglePause() {
   paused = !paused;
   pauseMenu.style.display = paused ? "block" : "none";
@@ -222,6 +214,5 @@ restartBtn.addEventListener("click", () => {
 
 resumeBtn.addEventListener("click", () => togglePause());
 menuBtn.addEventListener("click", () => location.reload());
-
 difficultySelect.addEventListener("change", (e) => difficulty = e.target.value);
 sensitivitySlider.addEventListener("input", (e) => sensitivity = parseInt(e.target.value));
