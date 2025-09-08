@@ -1,27 +1,60 @@
-:root {
-  --bg: linear-gradient(to top, #87ceeb, #e0f7fa);
-  --card-bg:#1f2937;
-  --primary:#0072ff;
-  --primary2:#00c6ff;
-  --danger:#ff4e50;
-  --text:#f0f0f0;
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to top, #87ceeb, #ffffff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;font-family:Arial,sans-serif;color:var(--text);background:#0f172a;overflow:hidden;}
-#gameRoot{width:400px;height:700px;max-width:95vw;max-height:95vh;margin:auto;position:relative;top:50%;transform:translateY(-50%);}
-#gameCanvas{width:100%;height:100%;border-radius:12px;background:var(--bg);box-shadow:0 0 20px rgba(0,0,0,.5);}
-#ui{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.4);padding:5px 12px;border-radius:12px;font-weight:bold;z-index:5;font-size:18px;}
-.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9;}
-.overlay.hidden{display:none;}
-.card{background:var(--card-bg);padding:25px;border-radius:15px;text-align:center;width:90%;max-width:360px;box-shadow:0 0 20px rgba(0,0,0,.5);}
-.card h1{margin-bottom:15px;font-size:26px;color:var(--primary);}
-.card h2{margin-bottom:10px;color:var(--primary);}
-.row{display:flex;justify-content:space-between;align-items:center;margin:12px 0;font-size:16px;}
-.primary{background:linear-gradient(45deg,var(--primary),var(--primary2));border:none;color:#fff;padding:10px 18px;border-radius:12px;cursor:pointer;font-size:16px;box-shadow:0 4px 6px rgba(0,0,0,.3);}
-.ghost{background:#555;border:none;color:#fff;padding:10px 18px;border-radius:12px;cursor:pointer;font-size:16px;}
-.fixedBtn{position:absolute;top:12px;right:12px;width:50px;height:50px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;z-index:8;font-size:20px;box-shadow:0 3px 6px rgba(0,0,0,.4);}
-#controls{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:space-between;padding:0 20px;z-index:8;}
-.control{width:70px;height:70px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:28px;border:none;box-shadow:0 3px 6px rgba(0,0,0,.4);}
-.mobileOnly{display:none;}
-@media (hover:none) and (pointer:coarse){.mobileOnly{display:flex;}}
+#menu, #pauseMenu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+canvas {
+  border: 2px solid #333;
+  background: #e0f7fa;
+  display: block;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 8px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+#controls button {
+  font-size: 24px;
+  padding: 15px;
+}
+
+#controls, #pauseBtn {
+  display: none; /* só aparece no celular */
+}
