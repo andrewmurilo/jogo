@@ -37,27 +37,39 @@ canvas {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-#startBtn, #restartBtn {
-  font-size: 24px;
-  padding: 15px 40px;
+#startBtn, #restartBtn, #pauseBtn, #backBtn {
+  font-size: 18px;
+  padding: 10px 30px;
   border: none;
   border-radius: 10px;
   background-color: #4caf50;
   color: white;
   cursor: pointer;
   transition: all 0.3s;
+  margin: 5px;
 }
 
-#startBtn:hover, #restartBtn:hover {
+#startBtn:hover, #restartBtn:hover, #pauseBtn:hover, #backBtn:hover {
   transform: scale(1.05);
 }
 
-#restartBtn {
+#restartBtn, #gameButtons {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #f44336;
-  display: none;
+  top: 10px;
+  right: 10px;
   z-index: 10;
+}
+
+#restartBtn { display: none; }
+
+#gameButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#gameButtons label {
+  color: #000;
+  font-size: 14px;
+  margin-top: 5px;
 }

@@ -27,11 +27,17 @@ let score = 0;
 let gameOver = false;
 let gameStarted = false;
 let cameraY = 0;
+let paused = false;
+let sensitivity = 4;
 
 // Botões
 const restartBtn = document.getElementById("restartBtn");
 const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const backBtn = document.getElementById("backBtn");
+const sensitivityInput = document.getElementById("sensitivity");
 
+// Eventos
 restartBtn.addEventListener("click", () => {
   resetGame();
   gameLoop();
@@ -42,6 +48,17 @@ startBtn.addEventListener("click", () => {
   document.getElementById("startScreen").style.display = "none";
   resetGame();
   gameLoop();
+});
+
+pauseBtn.addEventListener("click", () => paused = !paused);
+backBtn.addEventListener("click", () => {
+  gameStarted = false;
+  document.getElementById("startScreen").style.display = "flex";
+  paused = false;
+});
+
+sensitivityInput.addEventListener("input", (e) => {
+  sensitivity = parseInt(e.target.value);
 });
 
 // Controles PC
@@ -55,7 +72,7 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
 });
 
-// Controles celular (giroscópio)
+// Controles celular
 window.addEventListener("deviceorientation", (e) => {
   if (!gameStarted) return;
   if (e.gamma > 5) { keys.right = true; keys.left = false; }
@@ -78,6 +95,7 @@ function resetGame() {
   score = 0;
   gameOver = false;
   cameraY = 0;
+  paused = false;
 
   platforms = [];
   platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
@@ -86,8 +104,7 @@ function resetGame() {
     let px = Math.random() * (canvas.width - 70);
     let py = canvas.height - i * 100;
     let types = ["normal", "moving"];
-    let type = types[Math.floor(Math.random() * types.length)];
-    platforms.push(createPlatform(px, py, type));
+    platforms.push(createPlatform(px, py, types[Math.floor(Math.random()*types.length)]));
   }
 
   restartBtn.style.display = "none";
@@ -95,8 +112,8 @@ function resetGame() {
 
 // Atualizar jogador
 function updatePlayer() {
-  if (keys.left) player.x -= 4;
-  if (keys.right) player.x += 4;
+  if (keys.left) player.x -= sensitivity;
+  if (keys.right) player.x += sensitivity;
 
   if (player.x + player.width < 0) player.x = canvas.width;
   if (player.x > canvas.width) player.x = -player.width;
@@ -126,7 +143,7 @@ function updatePlayer() {
       }
 
       if (p.type === "cloud") {
-        platforms = platforms.filter((pl) => pl !== p);
+        platforms = platforms.filter(pl => pl !== p);
       }
     }
   });
@@ -154,10 +171,13 @@ function updatePlatforms() {
 
   while (platforms.length < 10) {
     let px = Math.random() * (canvas.width - 70);
-    let py = platforms[platforms.length - 1].y - 80;
-    let types = score >= 2500 ? ["normal","moving","cloud"] : ["normal","moving"];
-    let type = types[Math.floor(Math.random() * types.length)];
-    platforms.push(createPlatform(px, py, type));
+    let py = platforms[platforms.length-1].y - 80;
+
+    let types;
+    if (score >= 250) types = ["normal","moving","cloud"];
+    else types = ["normal","moving"];
+
+    platforms.push(createPlatform(px, py, types[Math.floor(Math.random()*types.length)]));
   }
 }
 
@@ -173,7 +193,6 @@ function drawPlatforms() {
     if (p.type === "normal") ctx.fillStyle = "#4caf50";
     if (p.type === "moving") ctx.fillStyle = "#2196f3";
     if (p.type === "cloud") ctx.fillStyle = "#ccc";
-
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
     if (p.hasSpring) {
@@ -183,7 +202,7 @@ function drawPlatforms() {
   });
 }
 
-// Desenhar pontuação
+// Pontuação
 function drawScore() {
   ctx.fillStyle = "#000";
   ctx.font = "20px Arial";
@@ -195,6 +214,15 @@ function gameLoop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   if (!gameStarted) return;
+  if (paused) {
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px Arial";
+    ctx.fillText("PAUSE", canvas.width/2 - 50, canvas.height/2);
+    requestAnimationFrame(gameLoop);
+    return;
+  }
 
   if (!gameOver) {
     updatePlayer();
