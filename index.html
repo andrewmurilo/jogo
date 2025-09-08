@@ -1,21 +1,47 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jump Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- Tela inicial -->
-  <div id="startScreen">
-    <button id="startBtn">Iniciar Jogo</button>
+  <!-- Menu inicial -->
+  <div id="menu">
+    <h1>Jump Game</h1>
+    <button id="startBtn">Iniciar</button>
   </div>
 
-  <!-- Botão reiniciar -->
-  <button id="restartBtn">Reiniciar</button>
+  <!-- Canvas do jogo -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Tela de pause -->
+  <div id="pauseMenu">
+    <h2>Pausado</h2>
+    <label>Dificuldade:
+      <select id="difficulty">
+        <option value="easy">Fácil</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Difícil</option>
+      </select>
+    </label>
+    <label>Sensibilidade:
+      <input type="range" id="sensitivity" min="2" max="10" value="4">
+    </label>
+    <button id="resumeBtn">Continuar</button>
+    <button id="menuBtn">Menu</button>
+  </div>
+
+  <!-- Botões mobile -->
+  <div id="mobileControls">
+    <button id="leftBtn">⏪</button>
+    <button id="pauseBtn">⏸</button>
+    <button id="rightBtn">⏩</button>
+  </div>
+
+  <!-- Botão de restart -->
+  <button id="restartBtn">Restart</button>
 
   <script src="script.js"></script>
 </body>
