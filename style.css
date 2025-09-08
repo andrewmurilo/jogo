@@ -1,60 +1,74 @@
 body {
   margin: 0;
-  padding: 0;
-  background: linear-gradient(to top, #87ceeb, #ffffff);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   font-family: Arial, sans-serif;
+  background: linear-gradient(to top, #87ceeb, #e0f7fa);
   overflow: hidden;
+  text-align: center;
+}
+
+canvas {
+  display: block;
+  margin: auto;
+  background: linear-gradient(to bottom, #cce7ff, #ffffff);
+  border: 3px solid #333;
 }
 
 #menu, #pauseMenu {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(255, 255, 255, 0.95);
   padding: 20px;
   border-radius: 12px;
-  text-align: center;
-  color: white;
+  box-shadow: 0 0 15px rgba(0,0,0,0.4);
 }
 
-.hidden {
-  display: none;
+#menu h1, #pauseMenu h2 {
+  margin-bottom: 15px;
 }
 
-canvas {
-  border: 2px solid #333;
-  background: #e0f7fa;
+#menu button, #pauseMenu button {
   display: block;
-}
-
-button {
+  margin: 10px auto;
   padding: 10px 20px;
-  margin: 8px;
-  font-size: 18px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  background: #4caf50;
+  color: white;
 }
 
-#controls {
+#restartBtn {
   position: absolute;
-  bottom: 20px;
-  width: 100%;
+  top: 10px; right: 10px;
+  display: none;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #f44336;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#mobileControls {
+  position: absolute;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
+  gap: 15px;
 }
 
-#controls button {
-  font-size: 24px;
+#mobileControls button {
   padding: 15px;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #333;
+  color: white;
 }
 
-#controls, #pauseBtn {
-  display: none; /* só aparece no celular */
+@media (min-width: 768px) {
+  #mobileControls { display: none; }
 }

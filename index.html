@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo de Plataforma</title>
+  <title>Jump Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Menu inicial -->
   <div id="menu">
-    <h1>Plataforma Jump</h1>
+    <h1>Jump Game</h1>
     <button id="startBtn">Iniciar</button>
   </div>
 
+  <!-- Canvas do jogo -->
   <canvas id="gameCanvas"></canvas>
 
-  <div id="pauseMenu" class="hidden">
-    <h2>Pause</h2>
-    <label>Sensibilidade: 
-      <input type="range" id="sensitivity" min="2" max="10" value="4">
-    </label>
+  <!-- Tela de pause -->
+  <div id="pauseMenu">
+    <h2>Pausado</h2>
     <label>Dificuldade:
       <select id="difficulty">
         <option value="easy">Fácil</option>
@@ -26,17 +26,22 @@
         <option value="hard">Difícil</option>
       </select>
     </label>
+    <label>Sensibilidade:
+      <input type="range" id="sensitivity" min="2" max="10" value="4">
+    </label>
     <button id="resumeBtn">Continuar</button>
     <button id="menuBtn">Menu</button>
   </div>
 
-  <div id="controls">
-    <button id="leftBtn">◀</button>
-    <button id="pauseBtn">II</button>
-    <button id="rightBtn">▶</button>
+  <!-- Botões mobile -->
+  <div id="mobileControls">
+    <button id="leftBtn">⏪</button>
+    <button id="pauseBtn">⏸</button>
+    <button id="rightBtn">⏩</button>
   </div>
 
-  <button id="restartBtn" class="hidden">Reiniciar</button>
+  <!-- Botão de restart -->
+  <button id="restartBtn">Restart</button>
 
   <script src="script.js"></script>
 </body>
