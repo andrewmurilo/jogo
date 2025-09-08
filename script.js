@@ -1,24 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 360;
+canvas.height = 640;
 
 let isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-const jumpSound = document.getElementById("jumpSound");
-const superJumpSound = document.getElementById("superJumpSound");
-const gameOverSound = document.getElementById("gameOverSound");
-
-let player = {x: canvas.width/2-20, y:canvas.height-80, width:40, height:40, color:"#ff5722", velocityY:0, gravity:0.4, jumpPower:-10, lastPlatform:null};
-let platforms = [];
-let score=0;
-let gameOver=false;
-let gameStarted=false;
-let cameraY=0;
-let paused=false;
-let sensitivity=4;
-let difficulty="normal";
+let player = {x:canvas.width/2-20, y:canvas.height-80, width:40, height:40, color:"#ff5722", velocityY:0, gravity:0.4, jumpPower:-10, lastPlatform:null};
+let platforms=[], score=0, gameOver=false, gameStarted=false, cameraY=0, paused=false, sensitivity=4, difficulty="normal";
 
 // Botões
 const restartBtn = document.getElementById("restartBtn");
@@ -30,7 +19,6 @@ const sensitivityInput = document.getElementById("sensitivity");
 const pauseMenu = document.getElementById("pauseMenu");
 const difficultyBtns = document.querySelectorAll(".difficultyBtn");
 
-// Eventos
 restartBtn.addEventListener("click",()=>{ resetGame(); gameLoop(); });
 startBtn.addEventListener("click",()=>{ gameStarted=true; document.getElementById("startScreen").style.display="none"; resetGame(); gameLoop(); });
 pauseMobileBtn.addEventListener("click",()=>{ paused=!paused; togglePauseMenu(); });
@@ -39,7 +27,6 @@ resumeBtn.addEventListener("click",()=>{ paused=false; togglePauseMenu(); });
 sensitivityInput.addEventListener("input",e=>sensitivity=parseInt(e.target.value));
 difficultyBtns.forEach(btn=>btn.addEventListener("click",e=>{difficulty=e.target.dataset.level;}));
 
-// Controles PC
 let keys = { left:false, right:false };
 document.addEventListener("keydown",e=>{
   if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
@@ -51,7 +38,6 @@ document.addEventListener("keyup",e=>{
   if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
 });
 
-// Controles celular (giroscópio)
 window.addEventListener("deviceorientation", e=>{
   if(!gameStarted) return;
   if(e.gamma>5*sensitivity){ keys.right=true; keys.left=false; }
@@ -59,13 +45,11 @@ window.addEventListener("deviceorientation", e=>{
   else { keys.left=false; keys.right=false; }
 });
 
-// Criar plataforma
 function createPlatform(x,y,type="normal"){ 
   let hasSpring = Math.random()<0.25;
   return {x,y,width:70,height:15,type,dx:type==="moving"?2:0,hasSpring};
 }
 
-// Resetar jogo
 function resetGame(){
   player.x = canvas.width/2-20; player.y = canvas.height-80; player.velocityY=0; player.lastPlatform=null;
   score=0; gameOver=false; cameraY=0; paused=false;
@@ -81,10 +65,8 @@ function resetGame(){
   pauseMenu.style.display="none";
 }
 
-// Toggle pause menu
 function togglePauseMenu(){ pauseMenu.style.display=paused?"block":"none"; }
 
-// Atualizar jogador
 function updatePlayer(){
   let moveSpeed=4;
   if(difficulty==="easy") moveSpeed=2;
@@ -100,21 +82,19 @@ function updatePlayer(){
 
   platforms.forEach(p=>{
     if(player.x<p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.velocityY>0){
-      if(p.hasSpring){ player.velocityY=-18; superJumpSound.play(); }
-      else { player.velocityY=player.jumpPower; jumpSound.play(); }
+      if(p.hasSpring){ player.velocityY=-18; }
+      else { player.velocityY=player.jumpPower; }
 
       if(player.lastPlatform!==p){ score++; player.lastPlatform=p; }
-
       if(p.type==="cloud"){ platforms=platforms.filter(pl=>pl!==p); }
     }
   });
 
-  if(player.y-cameraY>canvas.height){ gameOver=true; gameOverSound.play(); }
+  if(player.y-cameraY>canvas.height){ gameOver=true; }
 
   if(player.y<canvas.height/2-cameraY) cameraY=player.y-canvas.height/2;
 }
 
-// Atualizar plataformas
 function updatePlatforms(){
   platforms.forEach(p=>{ if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; } });
   platforms=platforms.filter(p=>p.y-cameraY<canvas.height+100);
@@ -128,10 +108,8 @@ function updatePlatforms(){
   }
 }
 
-// Desenhar jogador
 function drawPlayer(){ ctx.fillStyle=player.color; ctx.fillRect(player.x,player.y-cameraY,player.width,player.height); }
 
-// Desenhar plataformas
 function drawPlatforms(){
   platforms.forEach(p=>{
     if(p.type==="normal") ctx.fillStyle="#4caf50";
@@ -142,10 +120,8 @@ function drawPlatforms(){
   });
 }
 
-// Pontuação
 function drawScore(){ ctx.fillStyle="#000"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30); }
 
-// Loop principal
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(!gameStarted) return;
@@ -155,7 +131,3 @@ function gameLoop(){
   else { ctx.fillStyle="#000"; ctx.font="30px Arial"; ctx.fillText("Game Over",canvas.width/2-80,canvas.height/2); restartBtn.style.display="block"; }
 }
 
-window.addEventListener("resize",()=>{
-  canvas.width=window.innerWidth;
-  canvas.height=window.innerHeight;
-});
