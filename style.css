@@ -1,6 +1,5 @@
 body {
   margin: 0;
-  padding: 0;
   font-family: Arial, sans-serif;
   overflow: hidden;
   background: linear-gradient(#87ceeb, #ffffff);
@@ -38,7 +37,7 @@ canvas {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-#startBtn {
+#startBtn, #restartBtn {
   font-size: 24px;
   padding: 15px 40px;
   border: none;
@@ -49,29 +48,16 @@ canvas {
   transition: all 0.3s;
 }
 
-#startBtn:hover {
-  background-color: #45a049;
+#startBtn:hover, #restartBtn:hover {
   transform: scale(1.05);
 }
 
-/* Botão reiniciar */
 #restartBtn {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 24px;
-  padding: 15px 40px;
-  border: none;
-  border-radius: 10px;
   background-color: #f44336;
-  color: white;
-  cursor: pointer;
   display: none;
   z-index: 10;
-  transition: all 0.3s;
-}
-
-#restartBtn:hover {
-  background-color: #d32f2f;
 }
