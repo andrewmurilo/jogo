@@ -1,17 +1,15 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Detectar celular ou PC
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-canvas.width = isMobile ? window.innerWidth : 360;
-canvas.height = isMobile ? window.innerHeight : 640;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Sons
+let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
 const jumpSound = document.getElementById("jumpSound");
 const superJumpSound = document.getElementById("superJumpSound");
 const gameOverSound = document.getElementById("gameOverSound");
 
-// Jogador
 let player = {x: canvas.width/2-20, y:canvas.height-80, width:40, height:40, color:"#ff5722", velocityY:0, gravity:0.4, jumpPower:-10, lastPlatform:null};
 let platforms = [];
 let score=0;
@@ -20,6 +18,7 @@ let gameStarted=false;
 let cameraY=0;
 let paused=false;
 let sensitivity=4;
+let difficulty="normal";
 
 // Botões
 const restartBtn = document.getElementById("restartBtn");
@@ -29,6 +28,7 @@ const backBtn = document.getElementById("backBtn");
 const resumeBtn = document.getElementById("resumeBtn");
 const sensitivityInput = document.getElementById("sensitivity");
 const pauseMenu = document.getElementById("pauseMenu");
+const difficultyBtns = document.querySelectorAll(".difficultyBtn");
 
 // Eventos
 restartBtn.addEventListener("click",()=>{ resetGame(); gameLoop(); });
@@ -37,17 +37,25 @@ pauseMobileBtn.addEventListener("click",()=>{ paused=!paused; togglePauseMenu();
 backBtn.addEventListener("click",()=>{ gameStarted=false; document.getElementById("startScreen").style.display="flex"; paused=false; pauseMenu.style.display="none"; });
 resumeBtn.addEventListener("click",()=>{ paused=false; togglePauseMenu(); });
 sensitivityInput.addEventListener("input",e=>sensitivity=parseInt(e.target.value));
+difficultyBtns.forEach(btn=>btn.addEventListener("click",e=>{difficulty=e.target.dataset.level;}));
 
 // Controles PC
 let keys = { left:false, right:false };
-document.addEventListener("keydown",e=>{ if(e.key==="ArrowLeft"||e.key==="a") keys.left=true; if(e.key==="ArrowRight"||e.key==="d") keys.right=true; if(e.key==="Escape") { paused=!paused; togglePauseMenu(); } });
-document.addEventListener("keyup",e=>{ if(e.key==="ArrowLeft"||e.key==="a") keys.left=false; if(e.key==="ArrowRight"||e.key==="d") keys.right=false; });
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
+  if(e.key==="Escape"){ paused=!paused; togglePauseMenu(); }
+});
+document.addEventListener("keyup",e=>{
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
+});
 
 // Controles celular (giroscópio)
 window.addEventListener("deviceorientation", e=>{
   if(!gameStarted) return;
-  if(e.gamma>5){ keys.right=true; keys.left=false; }
-  else if(e.gamma<-5){ keys.left=true; keys.right=false; }
+  if(e.gamma>5*sensitivity){ keys.right=true; keys.left=false; }
+  else if(e.gamma<-5*sensitivity){ keys.left=true; keys.right=false; }
   else { keys.left=false; keys.right=false; }
 });
 
@@ -78,8 +86,12 @@ function togglePauseMenu(){ pauseMenu.style.display=paused?"block":"none"; }
 
 // Atualizar jogador
 function updatePlayer(){
-  if(keys.left) player.x-=sensitivity;
-  if(keys.right) player.x+=sensitivity;
+  let moveSpeed=4;
+  if(difficulty==="easy") moveSpeed=2;
+  else if(difficulty==="hard") moveSpeed=6;
+
+  if(keys.left) player.x-=sensitivity*moveSpeed;
+  if(keys.right) player.x+=sensitivity*moveSpeed;
   if(player.x+player.width<0) player.x=canvas.width;
   if(player.x>canvas.width) player.x=-player.width;
 
@@ -105,10 +117,10 @@ function updatePlayer(){
 // Atualizar plataformas
 function updatePlatforms(){
   platforms.forEach(p=>{ if(p.type==="moving"){ p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width) p.dx*=-1; } });
-
   platforms=platforms.filter(p=>p.y-cameraY<canvas.height+100);
 
-  while(platforms.length<10){
+  let maxPlatforms = difficulty==="easy"?7:difficulty==="hard"?12:10;
+  while(platforms.length<maxPlatforms){
     let px=Math.random()*(canvas.width-70);
     let py=platforms[platforms.length-1].y-80;
     let types=score>=250?["normal","moving","cloud"]:["normal","moving"];
@@ -144,5 +156,6 @@ function gameLoop(){
 }
 
 window.addEventListener("resize",()=>{
-  if(isMobile){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
 });

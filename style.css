@@ -11,6 +11,8 @@ canvas {
   margin: 0 auto;
   background-color: #a0d8f0;
   touch-action: manipulation;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* Tela inicial */
