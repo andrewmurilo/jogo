@@ -33,7 +33,7 @@ canvas {
   margin-bottom: 20px;
 }
 
-#startScreen button, #optionsScreen button {
+#startScreen button, #optionsScreen button, #pauseMenu button {
   margin: 10px;
   padding: 12px 24px;
   font-size: 18px;
@@ -45,7 +45,7 @@ canvas {
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
-#startScreen button:hover, #optionsScreen button:hover {
+#startScreen button:hover, #optionsScreen button:hover, #pauseMenu button:hover {
   background-color: #388e3c;
 }
 
@@ -59,6 +59,21 @@ canvas {
   background: transparent;
   cursor: pointer;
   display: none;
+}
+
+/* Menu pause */
+#pauseMenu {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  border-radius: 10px;
 }
 
 /* Reiniciar */
