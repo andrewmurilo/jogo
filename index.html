@@ -1,47 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escalada Extrema</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escalada Extrema</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="gameContainer">
-  <canvas id="gameCanvas"></canvas>
-
   <!-- Tela inicial -->
   <div id="startScreen">
-    <div id="startContent">
-      <h1>Escalada Extrema</h1>
-      <button id="startBtn">Iniciar Jogo</button>
-    </div>
+    <h1>⛰️ Escalada Extrema</h1>
+    <button id="startBtn">Iniciar Jogo</button>
+    <button id="optionsBtn">Opções</button>
   </div>
 
-  <!-- Controles no celular -->
-  <div id="mobileControls">
-    <button id="pauseMobileBtn">Pause</button>
+  <!-- Tela de opções -->
+  <div id="optionsScreen">
+    <h2>⚙️ Opções</h2>
+    <label>Dificuldade:</label>
+    <select id="difficulty">
+      <option value="easy">Fácil</option>
+      <option value="normal" selected>Normal</option>
+      <option value="hard">Difícil</option>
+    </select>
+    <br><br>
+    <label>Sensibilidade (somente celular):</label>
+    <input type="range" id="sensitivity" min="1" max="10" value="5">
+    <br><br>
+    <label>Tamanho HUD:</label>
+    <input type="range" id="hudSize" min="40" max="120" value="80">
+    <br><br>
+    <label>Opacidade HUD:</label>
+    <input type="range" id="hudOpacity" min="0.2" max="1" step="0.1" value="0.8">
+    <br><br>
+    <button id="backBtn">Voltar</button>
   </div>
 
-  <!-- Pause Menu -->
-  <div id="pauseMenu">
-    <h2>PAUSE</h2>
-    <label>Sensibilidade:
-      <input type="range" id="sensitivity" min="1" max="10" value="4">
-    </label>
-    <div>
-      <button class="difficultyBtn" data-level="easy">Fácil</button>
-      <button class="difficultyBtn" data-level="normal">Normal</button>
-      <button class="difficultyBtn" data-level="hard">Difícil</button>
-    </div>
-    <button id="resumeBtn">Continuar</button>
-    <button id="backBtn">Voltar ao Início</button>
-  </div>
+  <!-- Botão pause -->
+  <button id="pauseBtn">⏸️</button>
 
-  <!-- Botão de reiniciar -->
+  <!-- Canvas do jogo -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Botão reiniciar -->
   <button id="restartBtn">Reiniciar</button>
-</div>
 
-<script src="script.js"></script>
+  <!-- HUD para celular -->
+  <div id="hudControls">
+    <button id="btnLeft">⬅️</button>
+    <button id="btnRight">➡️</button>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,271 +1,205 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
 canvas.width = 360;
 canvas.height = 640;
 
-let player = {
-  x: canvas.width / 2 - 20,
-  y: canvas.height - 80,
-  width: 40,
-  height: 40,
-  color: "#ff5722",
-  velocityY: 0,
-  gravity: 0.4,
-  jumpPower: -10,
-  lastPlatform: null
-};
+// Screens
+const startScreen = document.getElementById("startScreen");
+const optionsScreen = document.getElementById("optionsScreen");
+const startBtn = document.getElementById("startBtn");
+const optionsBtn = document.getElementById("optionsBtn");
+const backBtn = document.getElementById("backBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const restartBtn = document.getElementById("restartBtn");
 
+// HUD
+const hudControls = document.getElementById("hudControls");
+const btnLeft = document.getElementById("btnLeft");
+const btnRight = document.getElementById("btnRight");
+
+// Flags
+let gameRunning = false;
+let gamePaused = false;
+let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+// Options
+let difficulty = "normal";
+let sensitivity = 5;
+let hudSize = 80;
+let hudOpacity = 0.8;
+
+// Player
+let player = {x: 180, y: 560, width: 40, height: 40, vy:0, jumpForce:-12, gravity:0.5, speed:4, color:"red"};
+
+// Plataformas
 let platforms = [];
 let score = 0;
-let gameOver = false;
 let cameraY = 0;
-let gameStarted = false;
-let paused = false;
-let difficulty = "normal";
-let sensitivity = 1;
 
-// Botão de restart
-const restartBtn = document.getElementById("restartBtn");
-restartBtn.addEventListener("click", () => {
+// ==== Funções ====
+function startGame(){
+  startScreen.style.display="none";
+  optionsScreen.style.display="none";
+  canvas.style.display="block";
+  pauseBtn.style.display="block";
+  if(isMobile) hudControls.style.display="flex";
+  gameRunning=true;
   resetGame();
-  gameLoop();
-});
-
-// Controles no PC
-let keys = { left: false, right: false };
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
-  if (e.key === "Escape") paused = !paused;
-});
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
-});
-
-// Controles no celular (giroscópio)
-window.addEventListener("deviceorientation", (e) => {
-  if (e.gamma > 5) {
-    keys.right = true;
-    keys.left = false;
-  } else if (e.gamma < -5) {
-    keys.left = true;
-    keys.right = false;
-  } else {
-    keys.left = false;
-    keys.right = false;
-  }
-});
-
-// Criar plataforma
-function createPlatform(x, y, type = "normal") {
-  return {
-    x,
-    y,
-    width: 70,
-    height: 15,
-    type,
-    dx: type === "moving" ? 2 : 0,
-    timer: type === "temporary" ? 300 : null,
-    hasSpring: Math.random() < 0.2 && type !== "temporary", // mola não spawna na temporária
-  };
+  requestAnimationFrame(gameLoop);
 }
 
-// Resetar jogo
-function resetGame() {
-  player.x = canvas.width / 2 - 20;
-  player.y = canvas.height - 80;
-  player.velocityY = 0;
-  score = 0;
-  gameOver = false;
-  cameraY = 0;
-
-  platforms = [];
-  platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal")); // inicial fixa
-
-  for (let i = 1; i < 7; i++) {
-    let px = Math.random() * (canvas.width - 70);
-    let py = canvas.height - i * 100;
-    let types = ["normal", "moving", "temporary"];
-    let type = types[Math.floor(Math.random() * types.length)];
-    platforms.push(createPlatform(px, py, type));
-  }
-
-  restartBtn.style.display = "none";
+function resetGame(){
+  player.y=canvas.height-80;
+  player.vy=0;
+  score=0;
+  cameraY=0;
+  platforms=[{x:canvas.width/2-50, y:canvas.height-20, width:100, height:10, type:"normal"}];
+  restartBtn.style.display="none";
 }
 
-// Atualizar jogador
-function updatePlayer() {
-  let moveSpeed = 4;
-  if (difficulty === "easy") moveSpeed = 2;
-  else if (difficulty === "hard") moveSpeed = 6;
+// Plataformas aleatórias
+function addPlatform(y){
+  let types=["normal","moving","temporary"];
+  if(score>=150) types.push("cloud");
+  let type = types[Math.floor(Math.random()*types.length)];
+  let p = {x:Math.random()*(canvas.width-70), y:y, width:70, height:15, type:type, dx:type==="moving"?2:0, timer:type==="temporary"?180:null, hasSpring:Math.random()<0.2 && type!=="temporary"};
+  platforms.push(p);
+  return p;
+}
 
-  if (keys.left) player.x -= sensitivity * moveSpeed;
-  if (keys.right) player.x += sensitivity * moveSpeed;
+// Update player
+function updatePlayer(){
+  // Gravidade
+  player.vy += player.gravity;
+  player.y += player.vy;
 
-  if (player.x + player.width < 0) player.x = canvas.width;
-  if (player.x > canvas.width) player.x = -player.width;
+  // Controles
+  if(keys.left) player.x -= player.speed*sensitivity;
+  if(keys.right) player.x += player.speed*sensitivity;
 
-  player.velocityY += player.gravity;
-  player.y += player.velocityY;
+  // Teletransporte lateral
+  if(player.x+player.width<0) player.x=canvas.width;
+  if(player.x>canvas.width) player.x=-player.width;
 
-  platforms.forEach((p) => {
-    if (
-      player.x < p.x + p.width &&
-      player.x + player.width > p.x &&
-      player.y + player.height > p.y &&
-      player.y + player.height < p.y + p.height + 10 &&
-      player.velocityY > 0
-    ) {
-      if (p.hasSpring) {
-        player.velocityY = -18;
-      } else {
-        player.velocityY = player.jumpPower;
-      }
-
-      if (player.lastPlatform !== p) {
-        score++;
-        player.lastPlatform = p;
-
-        // nuvem → desaparece por 3s
-        if (p.type === "cloud") {
-          let oldX = p.x,
-            oldY = p.y;
-          platforms = platforms.filter((pl) => pl !== p);
-          setTimeout(() => {
-            platforms.push(createPlatform(oldX, oldY, "cloud"));
-          }, 3000);
-        }
-      }
-
-      if (p.type === "temporary") {
-        p.timer -= 1;
-        if (p.timer <= 0) {
-          platforms = platforms.filter((pl) => pl !== p);
-        }
+  // Colisão com plataformas
+  platforms.forEach(p=>{
+    if(player.x< p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.vy>0){
+      player.vy=player.jumpForce;
+      if(p.hasSpring) player.vy=-18;
+      if(p.type==="cloud"){
+        setTimeout(()=>{},3000); // nuvem desaparece visual (vai atualizar na próxima frame)
       }
     }
   });
 
-  if (player.y - cameraY > canvas.height) {
-    gameOver = true;
-  }
+  // Câmera
+  if(player.y<cameraY+canvas.height/2) cameraY=player.y-canvas.height/2;
 
-  if (player.y < canvas.height / 2 - cameraY) {
-    cameraY = player.y - canvas.height / 2;
+  // Game over
+  if(player.y>cameraY+canvas.height){
+    gameRunning=false;
+    pauseBtn.style.display="none";
+    hudControls.style.display="none";
+    restartBtn.style.display="block";
   }
 }
 
-// Atualizar plataformas
-function updatePlatforms() {
-  platforms.forEach((p) => {
-    if (p.type === "moving") {
+// Update platforms
+function updatePlatforms(){
+  platforms.forEach(p=>{
+    if(p.type==="moving"){
       p.x += p.dx;
-      if (p.x <= 0 || p.x + p.width >= canvas.width) {
-        p.dx *= -1;
-      }
+      if(p.x<=0 || p.x+p.width>=canvas.width) p.dx*=-1;
+    }
+    if(p.type==="temporary"){
+      p.timer--;
+      if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);
     }
   });
 
-  platforms = platforms.filter((p) => p.y - cameraY < canvas.height + 100);
+  // Remover plataformas abaixo
+  platforms = platforms.filter(p=>p.y-cameraY<canvas.height+100);
 
-  let maxPlatforms = difficulty === "easy" ? 7 : difficulty === "hard" ? 12 : 10;
-  while (platforms.length < maxPlatforms) {
-    let px = Math.random() * (canvas.width - 70);
-    let py = platforms[platforms.length - 1].y - 80;
-
-    // nuvem só a partir de 150 pontos
-    let types = score >= 150 ? ["normal", "moving", "temporary", "cloud"] : ["normal", "moving", "temporary"];
-    let type = types[Math.floor(Math.random() * types.length)];
-    platforms.push(createPlatform(px, py, type));
+  // Adicionar novas
+  while(platforms.length<10){
+    addPlatform(platforms[platforms.length-1].y-80);
   }
 }
 
-// Dificuldade dinâmica
-function updateDifficulty() {
-  if (score > 2000) {
-    player.gravity = 0.6;
-  } else if (score > 1000) {
-    player.gravity = 0.5;
-  } else if (score > 500) {
-    player.gravity = 0.45;
-  } else {
-    player.gravity = 0.4;
-  }
-}
+// Draw
+function draw(){
+  // Fundo
+  ctx.fillStyle=`hsl(${Math.min(240,score/2)},70%,80%)`;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-// Fundo dinâmico
-function drawBackground() {
-  let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  if (score < 500) {
-    gradient.addColorStop(0, "#87ceeb");
-    gradient.addColorStop(1, "#ffffff");
-  } else if (score < 1000) {
-    gradient.addColorStop(0, "#ffcc80");
-    gradient.addColorStop(1, "#ffe0b2");
-  } else if (score < 2000) {
-    gradient.addColorStop(0, "#ba68c8");
-    gradient.addColorStop(1, "#e1bee7");
-  } else {
-    gradient.addColorStop(0, "#212121");
-    gradient.addColorStop(1, "#424242");
-  }
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
+  // Player
+  ctx.fillStyle=player.color;
+  ctx.fillRect(player.x, player.y-cameraY, player.width, player.height);
 
-// Desenhar jogador
-function drawPlayer() {
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
-}
+  // Plataformas
+  platforms.forEach(p=>{
+    if(p.type==="normal") ctx.fillStyle="#4caf50";
+    if(p.type==="moving") ctx.fillStyle="#2196f3";
+    if(p.type==="temporary") ctx.fillStyle="#ff9800";
+    if(p.type==="cloud") ctx.fillStyle="#fff";
+    ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
 
-// Desenhar plataformas
-function drawPlatforms() {
-  platforms.forEach((p) => {
-    if (p.type === "normal") ctx.fillStyle = "#4caf50";
-    if (p.type === "moving") ctx.fillStyle = "#2196f3";
-    if (p.type === "temporary") ctx.fillStyle = "#ff9800";
-    if (p.type === "cloud") ctx.fillStyle = "#b3e5fc";
-    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
-
-    if (p.hasSpring) {
-      ctx.fillStyle = "#000";
-      ctx.fillRect(p.x + p.width / 2 - 5, p.y - 10 - cameraY, 10, 10);
+    if(p.hasSpring){
+      ctx.fillStyle="black";
+      ctx.fillRect(p.x+p.width/2-5,p.y-10-cameraY,10,10);
     }
   });
+
+  // Pontuação
+  ctx.fillStyle="black";
+  ctx.font="20px Arial";
+  ctx.fillText("Pontuação: "+score,10,30);
 }
 
-// Desenhar pontuação
-function drawScore() {
-  ctx.fillStyle = "#000";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 30);
+// Game loop
+let keys={left:false,right:false};
+function gameLoop(){
+  if(!gameRunning || gamePaused) return;
+  updatePlayer();
+  updatePlatforms();
+  draw();
+  score++;
+  requestAnimationFrame(gameLoop);
 }
 
-// Loop principal
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Listeners
+startBtn.addEventListener("click",startGame);
+optionsBtn.addEventListener("click",()=>{startScreen.style.display="none"; optionsScreen.style.display="block";});
+backBtn.addEventListener("click",()=>{optionsScreen.style.display="none"; startScreen.style.display="block";});
+pauseBtn.addEventListener("click",()=>{gamePaused=!gamePaused; if(!gamePaused) requestAnimationFrame(gameLoop);});
+restartBtn.addEventListener("click",startGame);
 
-  if (!gameOver) {
-    drawBackground();
-    updatePlayer();
-    updatePlatforms();
-    updateDifficulty();
+// HUD mobile
+btnLeft.addEventListener("touchstart",()=>{keys.left=true;});
+btnLeft.addEventListener("touchend",()=>{keys.left=false;});
+btnRight.addEventListener("touchstart",()=>{keys.right=true;});
+btnRight.addEventListener("touchend",()=>{keys.right=false;});
 
-    drawPlayer();
-    drawPlatforms();
-    drawScore();
+// Teclado PC
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft" || e.key==="a") keys.left=true;
+  if(e.key==="ArrowRight" || e.key==="d") keys.right=true;
+  if(e.key==="Escape") {gamePaused=!gamePaused; if(!gamePaused) requestAnimationFrame(gameLoop);}
+});
+document.addEventListener("keyup",e=>{
+  if(e.key==="ArrowLeft" || e.key==="a") keys.left=false;
+  if(e.key==="ArrowRight" || e.key==="d") keys.right=false;
+});
 
-    requestAnimationFrame(gameLoop);
-  } else {
-    ctx.fillStyle = "#000";
-    ctx.font = "30px Arial";
-    ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
-    restartBtn.style.display = "block";
-  }
-}
-
-resetGame();
-gameLoop();
+// Options
+document.getElementById("difficulty").addEventListener("change",e=>difficulty=e.target.value);
+document.getElementById("sensitivity").addEventListener("input",e=>sensitivity=parseInt(e.target.value));
+document.getElementById("hudSize").addEventListener("input",e=>{
+  hudSize=parseInt(e.target.value);
+  btnLeft.style.width=btnLeft.style.height=hudSize+"px";
+  btnRight.style.width=btnRight.style.height=hudSize+"px";
+});
+document.getElementById("hudOpacity").addEventListener("input",e=>{
+  hudOpacity=parseFloat(e.target.value);
+  btnLeft.style.opacity=btnRight.style.opacity=hudOpacity;
+});
