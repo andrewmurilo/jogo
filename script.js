@@ -29,12 +29,16 @@ let hudSize = 80;
 let hudOpacity = 0.8;
 
 // Player
-let player = {x: 180, y: 560, width: 40, height: 40, vy:0, jumpForce:-12, gravity:0.5, speed:4, color:"red"};
+let player = {x: 180, y: 560, width: 40, height: 40, vy:0, jumpForce:-12, gravity:0.4, speed:3.5, color:"red"};
 
 // Plataformas
 let platforms = [];
 let score = 0;
 let cameraY = 0;
+
+// Controle
+let keys = {left:false,right:false};
+let lastPlatformY = 0;
 
 // ==== Funções ====
 function startGame(){
@@ -53,7 +57,10 @@ function resetGame(){
   player.vy=0;
   score=0;
   cameraY=0;
-  platforms=[{x:canvas.width/2-50, y:canvas.height-20, width:100, height:10, type:"normal"}];
+  platforms=[];
+  lastPlatformY = canvas.height - 20;
+  // Plataforma inicial abaixo do jogador
+  platforms.push({x:canvas.width/2-50, y:canvas.height-20, width:100, height:10, type:"normal", dx:0, timer:null, hasSpring:false});
   restartBtn.style.display="none";
 }
 
@@ -87,8 +94,10 @@ function updatePlayer(){
       player.vy=player.jumpForce;
       if(p.hasSpring) player.vy=-18;
       if(p.type==="cloud"){
-        setTimeout(()=>{},3000); // nuvem desaparece visual (vai atualizar na próxima frame)
+        // sumir por 3s e reaparecer no mesmo lugar
+        setTimeout(()=>{},3000);
       }
+      if(player.y<lastPlatformY){ score++; lastPlatformY = player.y; }
     }
   });
 
@@ -116,11 +125,9 @@ function updatePlatforms(){
       if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);
     }
   });
-
-  // Remover plataformas abaixo
-  platforms = platforms.filter(p=>p.y-cameraY<canvas.height+100);
-
-  // Adicionar novas
+  // Remover abaixo da tela
+  platforms = platforms.filter(p=>p.y-cameraY<canvas.height+50);
+  // Gerar novas plataformas
   while(platforms.length<10){
     addPlatform(platforms[platforms.length-1].y-80);
   }
@@ -128,13 +135,11 @@ function updatePlatforms(){
 
 // Draw
 function draw(){
-  // Fundo
-  ctx.fillStyle=`hsl(${Math.min(240,score/2)},70%,80%)`;
+  // Fundo dinâmico
+  let color1 = Math.min(255, 135 + Math.floor(cameraY/10));
+  let color2 = Math.min(255, 255 - Math.floor(cameraY/15));
+  ctx.fillStyle = `rgb(${color1},${color2},255)`;
   ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // Player
-  ctx.fillStyle=player.color;
-  ctx.fillRect(player.x, player.y-cameraY, player.width, player.height);
 
   // Plataformas
   platforms.forEach(p=>{
@@ -142,64 +147,54 @@ function draw(){
     if(p.type==="moving") ctx.fillStyle="#2196f3";
     if(p.type==="temporary") ctx.fillStyle="#ff9800";
     if(p.type==="cloud") ctx.fillStyle="#fff";
-    ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-
+    ctx.fillRect(p.x, p.y-cameraY, p.width, p.height);
     if(p.hasSpring){
-      ctx.fillStyle="black";
-      ctx.fillRect(p.x+p.width/2-5,p.y-10-cameraY,10,10);
+      ctx.fillStyle="purple";
+      ctx.fillRect(p.x+p.width/2-5, p.y-10-cameraY,10,10);
     }
   });
 
+  // Player
+  ctx.fillStyle=player.color;
+  ctx.fillRect(player.x, player.y-cameraY, player.width, player.height);
+
   // Pontuação
-  ctx.fillStyle="black";
+  ctx.fillStyle="#000";
   ctx.font="20px Arial";
-  ctx.fillText("Pontuação: "+score,10,30);
+  ctx.fillText("Score: "+score,10,30);
 }
 
 // Game loop
-let keys={left:false,right:false};
 function gameLoop(){
-  if(!gameRunning || gamePaused) return;
-  updatePlayer();
-  updatePlatforms();
-  draw();
-  score++;
-  requestAnimationFrame(gameLoop);
+  if(gameRunning && !gamePaused){
+    updatePlayer();
+    updatePlatforms();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
 }
 
-// Listeners
-startBtn.addEventListener("click",startGame);
-optionsBtn.addEventListener("click",()=>{startScreen.style.display="none"; optionsScreen.style.display="block";});
-backBtn.addEventListener("click",()=>{optionsScreen.style.display="none"; startScreen.style.display="block";});
-pauseBtn.addEventListener("click",()=>{gamePaused=!gamePaused; if(!gamePaused) requestAnimationFrame(gameLoop);});
-restartBtn.addEventListener("click",startGame);
+// ==== Eventos ====
+startBtn.addEventListener("click", startGame);
+optionsBtn.addEventListener("click",()=>{startScreen.style.display="none"; optionsScreen.style.display="flex";});
+backBtn.addEventListener("click",()=>{optionsScreen.style.display="none"; startScreen.style.display="flex";});
+restartBtn.addEventListener("click",()=>{startGame();});
 
-// HUD mobile
-btnLeft.addEventListener("touchstart",()=>{keys.left=true;});
-btnLeft.addEventListener("touchend",()=>{keys.left=false;});
-btnRight.addEventListener("touchstart",()=>{keys.right=true;});
-btnRight.addEventListener("touchend",()=>{keys.right=false;});
+pauseBtn.addEventListener("click",()=>{gamePaused=!gamePaused; if(gamePaused) alert("Jogo pausado. Ajuste opções."); requestAnimationFrame(gameLoop);});
 
-// Teclado PC
+// Controles PC
 document.addEventListener("keydown",e=>{
-  if(e.key==="ArrowLeft" || e.key==="a") keys.left=true;
-  if(e.key==="ArrowRight" || e.key==="d") keys.right=true;
-  if(e.key==="Escape") {gamePaused=!gamePaused; if(!gamePaused) requestAnimationFrame(gameLoop);}
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
+  if(e.key==="Escape"){ gamePaused=!gamePaused; if(gamePaused) alert("Jogo pausado. Ajuste opções."); requestAnimationFrame(gameLoop);}
 });
 document.addEventListener("keyup",e=>{
-  if(e.key==="ArrowLeft" || e.key==="a") keys.left=false;
-  if(e.key==="ArrowRight" || e.key==="d") keys.right=false;
+  if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
+  if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
 });
 
-// Options
-document.getElementById("difficulty").addEventListener("change",e=>difficulty=e.target.value);
-document.getElementById("sensitivity").addEventListener("input",e=>sensitivity=parseInt(e.target.value));
-document.getElementById("hudSize").addEventListener("input",e=>{
-  hudSize=parseInt(e.target.value);
-  btnLeft.style.width=btnLeft.style.height=hudSize+"px";
-  btnRight.style.width=btnRight.style.height=hudSize+"px";
-});
-document.getElementById("hudOpacity").addEventListener("input",e=>{
-  hudOpacity=parseFloat(e.target.value);
-  btnLeft.style.opacity=btnRight.style.opacity=hudOpacity;
-});
+// HUD celular
+btnLeft.addEventListener("touchstart",()=>keys.left=true);
+btnLeft.addEventListener("touchend",()=>keys.left=false);
+btnRight.addEventListener("touchstart",()=>keys.right=true);
+btnRight.addEventListener("touchend",()=>keys.right=false);
