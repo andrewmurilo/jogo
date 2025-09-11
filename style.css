@@ -105,7 +105,7 @@ body {
 }
 
 /* Restart Button */
-#restartBtn {
+#restartBtn, #menuRestartBtn {
   display:none;
   position:absolute;
   top:50%; left:50%;
@@ -119,4 +119,4 @@ body {
   cursor:pointer;
   z-index:15;
 }
-#restartBtn:hover{ background:#e64a19; }
+#restartBtn:hover,#menuRestartBtn:hover{ background:#e64a19; }
