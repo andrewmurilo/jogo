@@ -1,366 +1,326 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
 canvas.width = 360;
 canvas.height = 640;
 
-// Screens
-const startScreen = document.getElementById("startScreen");
-const optionsScreen = document.getElementById("optionsScreen");
-const startBtn = document.getElementById("startBtn");
-const optionsBtn = document.getElementById("optionsBtn");
-const backBtn = document.getElementById("backBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const restartBtn = document.getElementById("restartBtn");
-const pauseMenu = document.getElementById("pauseMenu");
-const resumeBtn = document.getElementById("resumeBtn");
-const menuBtn = document.getElementById("menuBtn");
-const pauseOptionsBtn = document.getElementById("pauseOptionsBtn");
+// 🎵 Sons com Web Audio API
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(freq, duration = 0.2) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value = freq;
+  osc.type = "square";
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
 
-// HUD
-const hudControls = document.getElementById("hudControls");
-const btnLeft = document.getElementById("btnLeft");
-const btnRight = document.getElementById("btnRight");
+// Player
+let player = {
+  x: canvas.width / 2 - 20,
+  y: canvas.height - 80,
+  width: 40,
+  height: 40,
+  color: "#ff5722",
+  velocityY: 0,
+  gravity: 0.4,
+  jumpPower: -10,
+  sensitivity: 4,
+};
 
-// Options
-const difficultySelect = document.getElementById("difficulty");
-const sensitivityRange = document.getElementById("sensitivity");
-const hudSizeRange = document.getElementById("hudSize");
-const hudOpacityRange = document.getElementById("hudOpacity");
-
-let gameRunning = false;
-let gamePaused = false;
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-// Game variables
-let player = {x:180, y:560, width:40, height:40, vy:0, jumpForce:-12, gravity:0.4, speed:3.5, color:"red"};
 let platforms = [];
 let score = 0;
+let highScore = 0;
+let gameOver = false;
 let cameraY = 0;
-let keys = {left:false,right:false};
-let lastPlatformY = 0;
+let paused = false;
 
-// ===== Functions =====
-function startGame(){
-    startScreen.style.display="none";
-    optionsScreen.style.display="none";
-    canvas.style.display="block";
-    pauseBtn.style.display="block";
-    hudControls.style.display = isMobile ? "flex" : "none";
-    gameRunning=true;
-    resetGame();
-    requestAnimationFrame(gameLoop);
-}
+// Estados de tela
+let currentScreen = "menu"; // menu | game | pause | options | hud
 
-function resetGame(){
-    player.x=180; player.y=560; player.vy=0;
-    score=0; cameraY=0; lastPlatformY = canvas.height-20;
-    platforms = [];
-    // Plataforma inicial
-    platforms.push({x:canvas.width/2-50, y:canvas.height-20, width:100, height:10, type:"normal", dx:0, timer:null, hasSpring:false});
-    restartBtn.style.display="none";
-}
+// Controles
+let keys = { left: false, right: false };
 
-// Add random platform
-function addPlatform(y){
-    let types=["normal","moving","temporary"];
-    if(score>=150) types.push("cloud");
-    let type = types[Math.floor(Math.random()*types.length)];
-    let p = {x:Math.random()*(canvas.width-70), y:y, width:70, height:15, type:type, dx:type==="moving"?2:0, timer:type==="temporary"?180:null, hasSpring:Math.random()<0.2 && type!=="temporary", alpha:1, disappearing:false};
-    platforms.push(p);
-    return p;
-}
+// --- EVENTOS ---
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
 
-// Update player
-function updatePlayer(){
-    player.vy += player.gravity;
-    player.y += player.vy;
-    if(keys.left) player.x -= player.speed*(Number(sensitivityRange.value)/5);
-    if(keys.right) player.x += player.speed*(Number(sensitivityRange.value)/5);
+  if (e.key === "Escape" && currentScreen === "game") togglePause();
+});
 
-    // Teletransporte lateral
-    if(player.x+player.width<0) playerconst canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-canvas.width = 360;
-canvas.height = 640;
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+});
 
-// Screens
-const startScreen = document.getElementById("startScreen");
-const optionsScreen = document.getElementById("optionsScreen");
+// Botões
 const startBtn = document.getElementById("startBtn");
 const optionsBtn = document.getElementById("optionsBtn");
-const backBtn = document.getElementById("backBtn");
 const pauseBtn = document.getElementById("pauseBtn");
-const restartBtn = document.getElementById("restartBtn");
 const pauseMenu = document.getElementById("pauseMenu");
 const resumeBtn = document.getElementById("resumeBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const hudBtn = document.getElementById("hudBtn");
 const menuBtn = document.getElementById("menuBtn");
-const pauseOptionsBtn = document.getElementById("pauseOptionsBtn");
+const optionsMenu = document.getElementById("optionsMenu");
+const backPause = document.getElementById("backPause");
+const hudMenu = document.getElementById("hudMenu");
+const backHud = document.getElementById("backHud");
+const difficultySelect = document.getElementById("difficultySelect");
+const sensitivityInput = document.getElementById("sensitivity");
 
-// HUD
-const hudControls = document.getElementById("hudControls");
-const btnLeft = document.getElementById("btnLeft");
-const btnRight = document.getElementById("btnRight");
+// Mobile
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+const mobileControls = document.getElementById("mobileControls");
+const btnSizeInput = document.getElementById("btnSize");
+const btnOpacityInput = document.getElementById("btnOpacity");
 
-// Options
-const difficultySelect = document.getElementById("difficulty");
-const sensitivityRange = document.getElementById("sensitivity");
-const hudSizeRange = document.getElementById("hudSize");
-const hudOpacityRange = document.getElementById("hudOpacity");
+// --- NAVEGAÇÃO ENTRE TELAS ---
+startBtn.onclick = () => {
+  document.getElementById("startScreen").style.display = "none";
+  canvas.style.display = "block";
+  pauseBtn.style.display = "block";
+  currentScreen = "game";
+  resetGame();
+  gameLoop();
+};
+optionsBtn.onclick = () => {
+  document.getElementById("startScreen").style.display = "none";
+  optionsMenu.style.display = "block";
+  currentScreen = "options";
+};
+resumeBtn.onclick = () => togglePause(false);
+settingsBtn.onclick = () => {
+  pauseMenu.style.display = "none";
+  optionsMenu.style.display = "block";
+  currentScreen = "options";
+};
+hudBtn.onclick = () => {
+  pauseMenu.style.display = "none";
+  hudMenu.style.display = "block";
+  currentScreen = "hud";
+};
+menuBtn.onclick = () => {
+  pauseMenu.style.display = "none";
+  document.getElementById("startScreen").style.display = "flex";
+  canvas.style.display = "none";
+  pauseBtn.style.display = "none";
+  currentScreen = "menu";
+};
+backPause.onclick = () => {
+  optionsMenu.style.display = "none";
+  pauseMenu.style.display = "block";
+  currentScreen = "pause";
+};
+backHud.onclick = () => {
+  hudMenu.style.display = "none";
+  pauseMenu.style.display = "block";
+  currentScreen = "pause";
+};
 
-let gameRunning = false;
-let gamePaused = false;
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-// Game variables
-let player = {x:180, y:560, width:40, height:40, vy:0, jumpForce:-12, gravity:0.4, speed:3.5, color:"red"};
-let platforms = [];
-let score = 0;
-let cameraY = 0;
-let keys = {left:false,right:false};
-let lastPlatformY = 0;
-
-// ===== Functions =====
-function startGame(){
-    startScreen.style.display="none";
-    optionsScreen.style.display="none";
-    canvas.style.display="block";
-    pauseBtn.style.display="block";
-    hudControls.style.display = isMobile ? "flex" : "none";
-    gameRunning=true;
-    resetGame();
+// --- PAUSE ---
+pauseBtn.onclick = () => togglePause();
+function togglePause(force = null) {
+  if (force !== null) paused = !force;
+  paused = !paused;
+  if (paused) {
+    pauseMenu.style.display = "block";
+    currentScreen = "pause";
+  } else {
+    pauseMenu.style.display = "none";
+    currentScreen = "game";
     requestAnimationFrame(gameLoop);
+  }
 }
 
-function resetGame(){
-    player.x=180; player.y=560; player.vy=0;
-    score=0; cameraY=0; lastPlatformY = canvas.height-20;
-    platforms = [];
-    // Plataforma inicial
-    platforms.push({x:canvas.width/2-50, y:canvas.height-20, width:100, height:10, type:"normal", dx:0, timer:null, hasSpring:false});
-    restartBtn.style.display="none";
+// --- HUD Ajustável ---
+btnSizeInput.oninput = () => {
+  document.querySelectorAll("#mobileControls button").forEach((btn) => {
+    btn.style.width = btnSizeInput.value + "px";
+    btn.style.height = btnSizeInput.value + "px";
+    btn.style.fontSize = btnSizeInput.value / 2 + "px";
+  });
+};
+btnOpacityInput.oninput = () => {
+  document.querySelectorAll("#mobileControls button").forEach((btn) => {
+    btn.style.opacity = btnOpacityInput.value;
+  });
+};
+
+// --- CONTROLES MOBILE ---
+leftBtn.addEventListener("touchstart", () => (keys.left = true));
+leftBtn.addEventListener("touchend", () => (keys.left = false));
+rightBtn.addEventListener("touchstart", () => (keys.right = true));
+rightBtn.addEventListener("touchend", () => (keys.right = false));
+
+// --- PLATAFORMAS ---
+function createPlatform(x, y, type = "normal") {
+  return {
+    x,
+    y,
+    width: 70,
+    height: 15,
+    type,
+    dx: type === "moving" ? 2 : 0,
+    timer: type === "temporary" ? 100 : null,
+    hasSpring: Math.random() < 0.2 && type !== "temporary",
+    cloudTimer: type === "cloud" ? 0 : null,
+    visible: true,
+  };
 }
 
-// Add random platform
-function addPlatform(y){
-    let types=["normal","moving","temporary"];
-    if(score>=150) types.push("cloud");
-    let type = types[Math.floor(Math.random()*types.length)];
-    let p = {x:Math.random()*(canvas.width-70), y:y, width:70, height:15, type:type, dx:type==="moving"?2:0, timer:type==="temporary"?180:null, hasSpring:Math.random()<0.2 && type!=="temporary", alpha:1, disappearing:false};
-    platforms.push(p);
-    return p;
+function resetGame() {
+  player.x = canvas.width / 2 - 20;
+  player.y = canvas.height - 80;
+  player.velocityY = 0;
+  score = 0;
+  gameOver = false;
+  cameraY = 0;
+  platforms = [];
+
+  // Plataforma inicial
+  platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
+
+  // Algumas iniciais
+  for (let i = 1; i < 7; i++) {
+    let px = Math.random() * (canvas.width - 70);
+    let py = canvas.height - i * 100;
+    let types = ["normal", "moving"];
+    let type = types[Math.floor(Math.random() * types.length)];
+    platforms.push(createPlatform(px, py, type));
+  }
 }
 
-// Update player
-function updatePlayer(){
-    player.vy += player.gravity;
-    player.y += player.vy;
-    if(keys.left) player.x -= player.speed*(Number(sensitivityRange.value)/5);
-    if(keys.right) player.x += player.speed*(Number(sensitivityRange.value)/5);
+// --- UPDATE PLAYER ---
+function updatePlayer() {
+  if (keys.left) player.x -= player.sensitivity;
+  if (keys.right) player.x += player.sensitivity;
 
-    // Teletransporte lateral
-    if(player.x+player.width<0) player.x=canvas.width;
-    if(player.x>canvas.width) player.x=-player.width;
+  // Wrap
+  if (player.x + player.width < 0) player.x = canvas.width;
+  if (player.x > canvas.width) player.x = -player.width;
 
-    platforms.forEach(p=>{
-        if(player.x< p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.vy>0){
-            player.vy=player.jumpForce;
-            if(p.hasSpring) player.vy=-18;
-            if(p.type==="cloud" && !p.disappearing){
-                p.disappearing=true;
-                let fade = setInterval(()=>{
-                    p.alpha -=0.05;
-                    if(p.alpha<=0){ clearInterval(fade); }
-                },50);
-            }
-            if(player.y<lastPlatformY){ score++; lastPlatformY = player.y; }
-        }
-    });
+  player.velocityY += player.gravity;
+  player.y += player.velocityY;
 
-    if(player.y<cameraY+canvas.height/2) cameraY=player.y-canvas.height/2;
-    if(player.y>cameraY+canvas.height){
-        gameRunning=false;
-        pauseBtn.style.display="none";
-        hudControls.style.display="none";
-        restartBtn.style.display="block";
+  // Colisão
+  platforms.forEach((p) => {
+    if (!p.visible) return;
+    if (
+      player.x < p.x + p.width &&
+      player.x + player.width > p.x &&
+      player.y + player.height > p.y &&
+      player.y + player.height < p.y + p.height + 10 &&
+      player.velocityY > 0
+    ) {
+      if (p.type === "temporary") {
+        p.visible = false;
+      }
+      if (p.type === "cloud") {
+        p.cloudTimer = 60; // ~1s animação antes de sumir
+      }
+      player.velocityY = player.jumpPower;
+      playSound(400);
+      score++;
+      if (p.hasSpring) {
+        player.velocityY = -18;
+        playSound(700);
+      }
     }
+  });
+
+  if (player.y - cameraY > canvas.height) {
+    gameOver = true;
+    playSound(100);
+  }
+
+  if (player.y < canvas.height / 2 - cameraY) {
+    cameraY = player.y - canvas.height / 2;
+  }
 }
 
-// Update platforms
-function updatePlatforms(){
-    platforms.forEach(p=>{
-        if(p.type==="moving") { p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width)p.dx*=-1; }
-        if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);}
-        if(p.type==="cloud" && p.disappearing){ p.alpha -=0.02; if(p.alpha<0)p.alpha=0;}
-    });
-    platforms = platforms.filter(p=>p.y-cameraY<canvas.height+50);
-    while(platforms.length<10){ addPlatform(platforms[platforms.length-1].y-80); }
-}
-
-// Draw
-function draw(){
-    let color1 = Math.min(255,135+Math.floor(cameraY/10));
-    let color2 = Math.min(255,255-Math.floor(cameraY/15));
-    ctx.fillStyle=`rgb(${color1},${color2},255)`;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    platforms.forEach(p=>{
-        if(p.type==="normal") ctx.fillStyle="#4caf50";
-        if(p.type==="moving") ctx.fillStyle="#2196f3";
-        if(p.type==="temporary") ctx.fillStyle="#ff9800";
-        if(p.type==="cloud") ctx.fillStyle=`rgba(255,255,255,${p.alpha})`;
-        ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-        if(p.hasSpring){ ctx.fillStyle="purple"; ctx.fillRect(p.x+p.width/2-5, p.y-10-cameraY,10,10);}
-    });
-
-    ctx.fillStyle=player.color;
-    ctx.fillRect(player.x, player.y-cameraY, player.width, player.height);
-
-    ctx.fillStyle="#000";
-    ctx.font="20px Arial";
-    ctx.fillText("Score: "+score,10,30);
-}
-
-// Game loop
-function gameLoop(){
-    if(gameRunning && !gamePaused){
-        updatePlayer();
-        updatePlatforms();
-        draw();
-        requestAnimationFrame(gameLoop);
+// --- UPDATE PLATFORMS ---
+function updatePlatforms() {
+  platforms.forEach((p) => {
+    if (p.type === "moving") {
+      p.x += p.dx;
+      if (p.x <= 0 || p.x + p.width >= canvas.width) {
+        p.dx *= -1;
+      }
     }
-}
-
-// ===== Event listeners =====
-startBtn.addEventListener("click",startGame);
-optionsBtn.addEventListener("click",()=>{startScreen.style.display="none"; optionsScreen.style.display="flex";});
-backBtn.addEventListener("click",()=>{optionsScreen.style.display="none"; startScreen.style.display="flex";});
-restartBtn.addEventListener("click",()=>{startGame();});
-
-// Pause
-pauseBtn.addEventListener("click",()=>{
-    gamePaused=!gamePaused;
-    pauseMenu.style.display=gamePaused?"flex":"none";
-});
-resumeBtn.addEventListener("click",()=>{gamePaused=false; pauseMenu.style.display="none"; requestAnimationFrame(gameLoop);});
-menuBtn.addEventListener("click",()=>{gamePaused=false; pauseMenu.style.display="none"; restartBtn.style.display="none"; canvas.style.display="none"; startScreen.style.display="flex";});
-pauseOptionsBtn.addEventListener("click",()=>{pauseMenu.style.display="none"; optionsScreen.style.display="flex";});
-
-// Keyboard
-document.addEventListener("keydown",e=>{
-    if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
-    if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
-    if(e.key==="Escape"){ gamePaused=!gamePaused; pauseMenu.style.display=gamePaused?"flex":"none"; requestAnimationFrame(gameLoop);}
-});
-document.addEventListener("keyup",e=>{
-    if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
-    if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
-});
-
-// HUD touch
-btnLeft.addEventListener("touchstart",()=>keys.left=true);
-btnLeft.addEventListener("touchend",()=>keys.left=false);
-btnRight.addEventListener("touchstart",()=>keys.right=true);
-btnRight.addEventListener("touchend",()=>keys.right=false);
-.x=canvas.width;
-    if(player.x>canvas.width) player.x=-player.width;
-
-    platforms.forEach(p=>{
-        if(player.x< p.x+p.width && player.x+player.width>p.x && player.y+player.height>p.y && player.y+player.height<p.y+p.height+10 && player.vy>0){
-            player.vy=player.jumpForce;
-            if(p.hasSpring) player.vy=-18;
-            if(p.type==="cloud" && !p.disappearing){
-                p.disappearing=true;
-                let fade = setInterval(()=>{
-                    p.alpha -=0.05;
-                    if(p.alpha<=0){ clearInterval(fade); }
-                },50);
-            }
-            if(player.y<lastPlatformY){ score++; lastPlatformY = player.y; }
-        }
-    });
-
-    if(player.y<cameraY+canvas.height/2) cameraY=player.y-canvas.height/2;
-    if(player.y>cameraY+canvas.height){
-        gameRunning=false;
-        pauseBtn.style.display="none";
-        hudControls.style.display="none";
-        restartBtn.style.display="block";
+    if (p.type === "cloud" && p.cloudTimer > 0) {
+      p.cloudTimer--;
+      if (p.cloudTimer === 0) {
+        p.visible = false;
+        setTimeout(() => {
+          p.visible = true;
+        }, 3000);
+      }
     }
+  });
+
+  platforms = platforms.filter((p) => p.y - cameraY < canvas.height + 100);
+
+  while (platforms.length < 10) {
+    let px = Math.random() * (canvas.width - 70);
+    let py = platforms[platforms.length - 1].y - 80;
+    let types = ["normal", "moving", "temporary"];
+    if (score > 150) types.push("cloud");
+    let type = types[Math.floor(Math.random() * types.length)];
+    platforms.push(createPlatform(px, py, type));
+  }
 }
 
-// Update platforms
-function updatePlatforms(){
-    platforms.forEach(p=>{
-        if(p.type==="moving") { p.x+=p.dx; if(p.x<=0||p.x+p.width>=canvas.width)p.dx*=-1; }
-        if(p.type==="temporary"){ p.timer--; if(p.timer<=0) platforms=platforms.filter(pl=>pl!==p);}
-        if(p.type==="cloud" && p.disappearing){ p.alpha -=0.02; if(p.alpha<0)p.alpha=0;}
-    });
-    platforms = platforms.filter(p=>p.y-cameraY<canvas.height+50);
-    while(platforms.length<10){ addPlatform(platforms[platforms.length-1].y-80); }
+// --- DRAW ---
+function drawPlayer() {
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
 }
+function drawPlatforms() {
+  platforms.forEach((p) => {
+    if (!p.visible) return;
+    if (p.type === "normal") ctx.fillStyle = "#4caf50";
+    if (p.type === "moving") ctx.fillStyle = "#2196f3";
+    if (p.type === "temporary") ctx.fillStyle = "#ff9800";
+    if (p.type === "cloud") ctx.fillStyle = "#fff";
 
-// Draw
-function draw(){
-    let color1 = Math.min(255,135+Math.floor(cameraY/10));
-    let color2 = Math.min(255,255-Math.floor(cameraY/15));
-    ctx.fillStyle=`rgb(${color1},${color2},255)`;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
-    platforms.forEach(p=>{
-        if(p.type==="normal") ctx.fillStyle="#4caf50";
-        if(p.type==="moving") ctx.fillStyle="#2196f3";
-        if(p.type==="temporary") ctx.fillStyle="#ff9800";
-        if(p.type==="cloud") ctx.fillStyle=`rgba(255,255,255,${p.alpha})`;
-        ctx.fillRect(p.x,p.y-cameraY,p.width,p.height);
-        if(p.hasSpring){ ctx.fillStyle="purple"; ctx.fillRect(p.x+p.width/2-5, p.y-10-cameraY,10,10);}
-    });
-
-    ctx.fillStyle=player.color;
-    ctx.fillRect(player.x, player.y-cameraY, player.width, player.height);
-
-    ctx.fillStyle="#000";
-    ctx.font="20px Arial";
-    ctx.fillText("Score: "+score,10,30);
-}
-
-// Game loop
-function gameLoop(){
-    if(gameRunning && !gamePaused){
-        updatePlayer();
-        updatePlatforms();
-        draw();
-        requestAnimationFrame(gameLoop);
+    if (p.hasSpring) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(p.x + p.width / 2 - 5, p.y - 10 - cameraY, 10, 10);
     }
+  });
+}
+function drawScore() {
+  ctx.fillStyle = "#000";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 10, 30);
 }
 
-// ===== Event listeners =====
-startBtn.addEventListener("click",startGame);
-optionsBtn.addEventListener("click",()=>{startScreen.style.display="none"; optionsScreen.style.display="flex";});
-backBtn.addEventListener("click",()=>{optionsScreen.style.display="none"; startScreen.style.display="flex";});
-restartBtn.addEventListener("click",()=>{startGame();});
+// --- GAME LOOP ---
+function gameLoop() {
+  if (paused) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Pause
-pauseBtn.addEventListener("click",()=>{
-    gamePaused=!gamePaused;
-    pauseMenu.style.display=gamePaused?"flex":"none";
-});
-resumeBtn.addEventListener("click",()=>{gamePaused=false; pauseMenu.style.display="none"; requestAnimationFrame(gameLoop);});
-menuBtn.addEventListener("click",()=>{gamePaused=false; pauseMenu.style.display="none"; restartBtn.style.display="none"; canvas.style.display="none"; startScreen.style.display="flex";});
-pauseOptionsBtn.addEventListener("click",()=>{pauseMenu.style.display="none"; optionsScreen.style.display="flex";});
+  if (!gameOver) {
+    updatePlayer();
+    updatePlatforms();
 
-// Keyboard
-document.addEventListener("keydown",e=>{
-    if(e.key==="ArrowLeft"||e.key==="a") keys.left=true;
-    if(e.key==="ArrowRight"||e.key==="d") keys.right=true;
-    if(e.key==="Escape"){ gamePaused=!gamePaused; pauseMenu.style.display=gamePaused?"flex":"none"; requestAnimationFrame(gameLoop);}
-});
-document.addEventListener("keyup",e=>{
-    if(e.key==="ArrowLeft"||e.key==="a") keys.left=false;
-    if(e.key==="ArrowRight"||e.key==="d") keys.right=false;
-});
+    drawPlayer();
+    drawPlatforms();
+    drawScore();
 
-// HUD touch
-btnLeft.addEventListener("touchstart",()=>keys.left=true);
-btnLeft.addEventListener("touchend",()=>keys.left=false);
-btnRight.addEventListener("touchstart",()=>keys.right=true);
-btnRight.addEventListener("touchend",()=>keys.right=false);
+    requestAnimationFrame(gameLoop);
+  } else {
+    ctx.fillStyle = "#000";
+    ctx.font = "30px Arial";
+    ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
+    pauseBtn.style.display = "none";
+  }
+}

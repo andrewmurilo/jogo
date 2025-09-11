@@ -1,52 +1,50 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #87ceeb, #ffffff);
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  overflow: hidden;
-  background: linear-gradient(to top, #87ceeb, #ffffff);
 }
 
-canvas {
-  display: none;
-  border: 2px solid #333;
-  background: linear-gradient(to top, #87ceeb, #e0f7fa);
-}
-
-/* Tela inicial e opções */
-#startScreen, #optionsScreen {
+/* Tela inicial */
+#startScreen {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255,255,255,0.95);
+  background: linear-gradient(180deg, #87ceeb, #fff);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  z-index: 10;
 }
-
-#startScreen h1, #optionsScreen h2 {
+#startScreen h1 {
   font-size: 32px;
   margin-bottom: 20px;
 }
-
-#startScreen button, #optionsScreen button, #pauseMenu button {
+#startScreen button {
+  font-size: 20px;
+  padding: 12px 20px;
   margin: 10px;
-  padding: 12px 24px;
-  font-size: 18px;
   border: none;
-  border-radius: 10px;
-  background-color: #4caf50;
+  border-radius: 12px;
+  background: #ff9800;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
-#startScreen button:hover, #optionsScreen button:hover, #pauseMenu button:hover {
-  background-color: #388e3c;
+/* Canvas */
+#gameCanvas {
+  display: none;
+  background-color: #e0f7fa;
+  width: 360px;
+  height: 640px;
+  border: 2px solid #000;
 }
 
 /* Pause */
@@ -54,59 +52,48 @@ canvas {
   position: absolute;
   top: 10px;
   left: 10px;
-  font-size: 28px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: none;
-}
-
-/* Menu pause */
-#pauseMenu {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: rgba(255,255,255,0.95);
-  padding: 20px;
-  border-radius: 10px;
-}
-
-/* Reiniciar */
-#restartBtn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 12px 24px;
-  font-size: 20px;
-  border: none;
-  border-radius: 10px;
-  background-color: #ff5722;
-  color: white;
-  cursor: pointer;
-  display: none;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-/* HUD celular */
-#hudControls {
-  position: absolute;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-}
-
-#hudControls button {
+  font-size: 22px;
+  padding: 10px;
   border: none;
   border-radius: 50%;
-  background-color: rgba(0,0,0,0.5);
-  color: white;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: none;
+}
+#pauseMenu, #optionsMenu, #hudMenu {
+  display: none;
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 12px;
+  z-index: 20;
+}
+#pauseMenu button, #optionsMenu button, #hudMenu button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  font-size: 18px;
+}
+
+/* Controles mobile */
+#mobileControls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 40px;
+}
+#mobileControls button {
+  width: 60px;
+  height: 60px;
   font-size: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #ff9800;
+  color: white;
+  opacity: 1;
 }
