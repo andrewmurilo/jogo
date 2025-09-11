@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Escalada Extrema</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo de Plataformas</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Tela inicial -->
   <div id="startScreen">
-    <h1>⛰️ Escalada Extrema ⛰️</h1>
-    <button id="startBtn">🎮 Iniciar Jogo</button>
-    <button id="optionsBtn">⚙️ Opções</button>
+    <h1>🌟 Jogo de Plataformas 🌟</h1>
+    <button id="startBtn">Iniciar Jogo</button>
+    <button id="optionsBtn">Opções</button>
   </div>
 
   <!-- Canvas do jogo -->
@@ -22,15 +22,16 @@
 
   <!-- Menu de Pause -->
   <div id="pauseMenu">
+    <h2>Pausado</h2>
     <button id="resumeBtn">▶️ Continuar</button>
     <button id="settingsBtn">⚙️ Opções</button>
-    <button id="hudBtn">🎛️ HUD</button>
+    <button id="hudBtn">🎮 HUD</button>
     <button id="menuBtn">🏠 Menu Inicial</button>
   </div>
 
-  <!-- Submenu de Opções -->
+  <!-- Menu de Opções -->
   <div id="optionsMenu">
-    <h2>⚙️ Opções</h2>
+    <h2>⚙️ Configurações</h2>
     <label>Dificuldade:
       <select id="difficultySelect">
         <option value="easy">Fácil</option>
@@ -44,13 +45,13 @@
     <button id="backPause">⬅️ Voltar</button>
   </div>
 
-  <!-- HUD Config -->
+  <!-- Menu de HUD -->
   <div id="hudMenu">
-    <h2>🎛️ Configuração HUD</h2>
-    <label>Tamanho Botões:
-      <input type="range" id="btnSize" min="40" max="100" value="60">
+    <h2>🎮 Ajustes do HUD</h2>
+    <label>Tamanho dos botões:
+      <input type="range" id="btnSize" min="40" max="120" value="60">
     </label>
-    <label>Opacidade Botões:
+    <label>Opacidade dos botões:
       <input type="range" id="btnOpacity" min="0.2" max="1" step="0.1" value="1">
     </label>
     <button id="backHud">⬅️ Voltar</button>
@@ -61,6 +62,9 @@
     <button id="leftBtn">⬅️</button>
     <button id="rightBtn">➡️</button>
   </div>
+
+  <!-- Botão de Restart (Game Over) -->
+  <button id="restartBtn">🔄 Reiniciar</button>
 
   <script src="script.js"></script>
 </body>

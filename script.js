@@ -4,7 +4,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = 360;
 canvas.height = 640;
 
-// 🎵 Sons com Web Audio API
+// Sons
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(freq, duration = 0.2) {
   const osc = audioCtx.createOscillator();
@@ -24,7 +24,7 @@ let player = {
   y: canvas.height - 80,
   width: 40,
   height: 40,
-  color: "#ffffffff",
+  color: "#ff5722",
   velocityY: 0,
   gravity: 0.4,
   jumpPower: -10,
@@ -33,29 +33,12 @@ let player = {
 
 let platforms = [];
 let score = 0;
-let highScore = 0;
 let gameOver = false;
 let cameraY = 0;
 let paused = false;
-
-// Estados de tela
 let currentScreen = "menu"; // menu | game | pause | options | hud
 
-// Controles
 let keys = { left: false, right: false };
-
-// --- EVENTOS ---
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
-
-  if (e.key === "Escape" && currentScreen === "game") togglePause();
-});
-
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
-});
 
 // Botões
 const startBtn = document.getElementById("startBtn");
@@ -72,15 +55,32 @@ const hudMenu = document.getElementById("hudMenu");
 const backHud = document.getElementById("backHud");
 const difficultySelect = document.getElementById("difficultySelect");
 const sensitivityInput = document.getElementById("sensitivity");
+const restartBtn = document.getElementById("restartBtn"); // 🔹 novo botão
 
 // Mobile
 const leftBtn = document.getElementById("leftBtn");
 const rightBtn = document.getElementById("rightBtn");
-const mobileControls = document.getElementById("mobileControls");
 const btnSizeInput = document.getElementById("btnSize");
 const btnOpacityInput = document.getElementById("btnOpacity");
 
-// --- NAVEGAÇÃO ENTRE TELAS ---
+// --- EVENTOS ---
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+  if (e.key === "Escape" && currentScreen === "game") togglePause();
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+  if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+});
+
+// --- CONTROLES MOBILE ---
+leftBtn.addEventListener("touchstart", () => (keys.left = true));
+leftBtn.addEventListener("touchend", () => (keys.left = false));
+rightBtn.addEventListener("touchstart", () => (keys.right = true));
+rightBtn.addEventListener("touchend", () => (keys.right = false));
+
+// --- NAVEGAÇÃO ---
 startBtn.onclick = () => {
   document.getElementById("startScreen").style.display = "none";
   canvas.style.display = "block";
@@ -122,6 +122,12 @@ backHud.onclick = () => {
   pauseMenu.style.display = "block";
   currentScreen = "pause";
 };
+restartBtn.onclick = () => {
+  restartBtn.style.display = "none";
+  resetGame();
+  currentScreen = "game";
+  gameLoop();
+};
 
 // --- PAUSE ---
 pauseBtn.onclick = () => togglePause();
@@ -152,12 +158,6 @@ btnOpacityInput.oninput = () => {
   });
 };
 
-// --- CONTROLES MOBILE ---
-leftBtn.addEventListener("touchstart", () => (keys.left = true));
-leftBtn.addEventListener("touchend", () => (keys.left = false));
-rightBtn.addEventListener("touchstart", () => (keys.right = true));
-rightBtn.addEventListener("touchend", () => (keys.right = false));
-
 // --- PLATAFORMAS ---
 function createPlatform(x, y, type = "normal") {
   return {
@@ -167,10 +167,10 @@ function createPlatform(x, y, type = "normal") {
     height: 15,
     type,
     dx: type === "moving" ? 2 : 0,
-    timer: type === "temporary" ? 100 : null,
     hasSpring: Math.random() < 0.2 && type !== "temporary",
     cloudTimer: type === "cloud" ? 0 : null,
     visible: true,
+    alpha: 1, // 🔹 opacidade p/ animação
   };
 }
 
@@ -183,10 +183,8 @@ function resetGame() {
   cameraY = 0;
   platforms = [];
 
-  // Plataforma inicial
   platforms.push(createPlatform(canvas.width / 2 - 35, canvas.height - 40, "normal"));
 
-  // Algumas iniciais
   for (let i = 1; i < 7; i++) {
     let px = Math.random() * (canvas.width - 70);
     let py = canvas.height - i * 100;
@@ -201,14 +199,12 @@ function updatePlayer() {
   if (keys.left) player.x -= player.sensitivity;
   if (keys.right) player.x += player.sensitivity;
 
-  // Wrap
   if (player.x + player.width < 0) player.x = canvas.width;
   if (player.x > canvas.width) player.x = -player.width;
 
   player.velocityY += player.gravity;
   player.y += player.velocityY;
 
-  // Colisão
   platforms.forEach((p) => {
     if (!p.visible) return;
     if (
@@ -221,8 +217,8 @@ function updatePlayer() {
       if (p.type === "temporary") {
         p.visible = false;
       }
-      if (p.type === "cloud") {
-        p.cloudTimer = 60; // ~1s animação antes de sumir
+      if (p.type === "cloud" && p.cloudTimer === 0) {
+        p.cloudTimer = 60; // começa animação fade
       }
       player.velocityY = player.jumpPower;
       playSound(400);
@@ -237,6 +233,7 @@ function updatePlayer() {
   if (player.y - cameraY > canvas.height) {
     gameOver = true;
     playSound(100);
+    restartBtn.style.display = "block"; // 🔹 aparece botão restart
   }
 
   if (player.y < canvas.height / 2 - cameraY) {
@@ -249,16 +246,16 @@ function updatePlatforms() {
   platforms.forEach((p) => {
     if (p.type === "moving") {
       p.x += p.dx;
-      if (p.x <= 0 || p.x + p.width >= canvas.width) {
-        p.dx *= -1;
-      }
+      if (p.x <= 0 || p.x + p.width >= canvas.width) p.dx *= -1;
     }
     if (p.type === "cloud" && p.cloudTimer > 0) {
+      p.alpha = p.cloudTimer / 60; // fade
       p.cloudTimer--;
       if (p.cloudTimer === 0) {
         p.visible = false;
         setTimeout(() => {
           p.visible = true;
+          p.alpha = 1;
         }, 3000);
       }
     }
@@ -286,8 +283,8 @@ function drawPlatforms() {
     if (!p.visible) return;
     if (p.type === "normal") ctx.fillStyle = "#4caf50";
     if (p.type === "moving") ctx.fillStyle = "#2196f3";
-    if (p.type === "temporary") ctx.fillStyle = "#ffffffff";
-    if (p.type === "cloud") ctx.fillStyle = "#fff";
+    if (p.type === "temporary") ctx.fillStyle = "#ff9800";
+    if (p.type === "cloud") ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
 
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
 
@@ -321,6 +318,5 @@ function gameLoop() {
     ctx.fillStyle = "#000";
     ctx.font = "30px Arial";
     ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
-    pauseBtn.style.display = "none";
   }
 }
