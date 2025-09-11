@@ -24,7 +24,7 @@ let player = {
   y: canvas.height - 80,
   width: 40,
   height: 40,
-  color: "#ff5722",
+  color: "#ffffffff",
   velocityY: 0,
   gravity: 0.4,
   jumpPower: -10,
@@ -286,7 +286,7 @@ function drawPlatforms() {
     if (!p.visible) return;
     if (p.type === "normal") ctx.fillStyle = "#4caf50";
     if (p.type === "moving") ctx.fillStyle = "#2196f3";
-    if (p.type === "temporary") ctx.fillStyle = "#ff9800";
+    if (p.type === "temporary") ctx.fillStyle = "#ffffffff";
     if (p.type === "cloud") ctx.fillStyle = "#fff";
 
     ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
