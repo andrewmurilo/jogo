@@ -1,74 +1,98 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Escalada Extrema</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<!-- Tela Inicial -->
-<div id="startScreen">
-  <h1>Escalada Extrema</h1>
-  <button id="startBtn">Iniciar Jogo</button>
-  <button id="optionsBtn">Opções</button>
+<!-- BACKDROP: permite imagem ou vídeo -->
+<div id="menuBackdrop"></div>
+
+<!-- Tela inicial -->
+<div id="startScreen" class="screen">
+  <div id="startCard">
+    <h1>⛰️ Escalada Extrema</h1>
+    <div class="start-buttons">
+      <button id="startBtn">🎮 Iniciar Jogo</button>
+      <button id="openOptionsFromMenu">⚙️ Opções</button>
+    </div>
+    <div id="menuAssets">
+      <label>Imagem ou vídeo do menu (URL):</label>
+      <input id="menuAssetInput" placeholder="URL da imagem ou vídeo (jpg/png/mp4)" />
+      <button id="applyMenuAsset">Aplicar</button>
+    </div>
+  </div>
 </div>
 
-<!-- Canvas do Jogo -->
-<canvas id="gameCanvas"></canvas>
+<!-- Canvas vertical (simula celular em PC) -->
+<div id="gameContainer">
+  <canvas id="gameCanvas" width="360" height="640"></canvas>
+</div>
 
-<!-- Botão Pause -->
-<button id="pauseBtn">⏸️</button>
+<!-- Pause / opções (quadrado que aparece com ESC ou botão) -->
+<button id="pauseBtn" title="Pausar (ESC)">⏸️</button>
 
-<!-- Menu de Pause -->
-<div id="pauseMenu">
-  <h2>Pausado</h2>
+<div id="pausePanel" class="panel" aria-hidden="true">
+  <h3>Pausado</h3>
   <button id="resumeBtn">▶️ Continuar</button>
-  <button id="settingsBtn">⚙️ Opções</button>
-  <button id="hudBtn">🎮 HUD</button>
-  <button id="menuBtn">🏠 Menu Inicial</button>
+  <button id="openOptionsBtn">⚙️ Opções</button>
+  <button id="openHudEditorBtn">🎮 HUD</button>
+  <button id="goMenuBtn">🏠 Voltar ao Menu</button>
 </div>
 
-<!-- Menu de Opções -->
-<div id="optionsMenu">
-  <h2>Configurações</h2>
-  <label>Dificuldade:
+<!-- Opções detalhadas -->
+<div id="optionsPanel" class="panel" aria-hidden="true">
+  <h3>Opções</h3>
+
+  <label> Dificuldade:
     <select id="difficultySelect">
       <option value="easy">Fácil</option>
       <option value="normal" selected>Normal</option>
       <option value="hard">Difícil</option>
     </select>
   </label>
-  <label>Sensibilidade do movimento:
-    <input type="range" id="sensitivity" min="2" max="10" value="4">
+
+  <label> Sensibilidade (movimento):
+    <input type="range" id="sensitivityRange" min="1" max="8" value="4" />
   </label>
-  <button id="backPause">⬅️ Voltar</button>
+
+  <hr/>
+  <h4>Texturas / Sprites</h4>
+  <label>Player (URL da imagem): <input id="playerTextureInput" placeholder="URL da imagem PNG/JPG" /></label>
+  <label>Plataforma (URL): <input id="platformTextureInput" placeholder="URL da imagem PNG/JPG" /></label>
+  <label>Plataforma Nuvem (URL): <input id="cloudTextureInput" placeholder="URL da imagem PNG/JPG" /></label>
+  <button id="applyTexturesBtn">Aplicar Texturas</button>
+
+  <hr/>
+  <button id="optionsBackBtn">⬅️ Voltar</button>
 </div>
 
-<!-- Menu HUD -->
-<div id="hudMenu">
-  <h2>HUD</h2>
-  <label>Tamanho dos botões:
-    <input type="range" id="btnSize" min="40" max="120" value="60">
+<!-- HUD editor -->
+<div id="hudEditor" class="panel" aria-hidden="true">
+  <h3>HUD Editor</h3>
+  <label>Tamanho botões:
+    <input type="range" id="hudSizeRange" min="40" max="120" value="60"/>
   </label>
-  <label>Opacidade dos botões:
-    <input type="range" id="btnOpacity" min="0.2" max="1" step="0.1" value="1">
+  <label>Opacidade:
+    <input type="range" id="hudOpacityRange" min="0.2" max="1" step="0.1" value="1"/>
   </label>
-  <p>Arraste os botões na tela para reposicionar.</p>
-  <button id="confirmHud">✅ Confirmar</button>
-  <button id="backHud">⬅️ Voltar</button>
+  <p>Arraste os botões (segure e mova) para reposicionar.</p>
+  <button id="confirmHudBtn">✅ Confirmar</button>
+  <button id="hudBackBtn">⬅️ Voltar</button>
 </div>
 
-<!-- Controles Mobile -->
+<!-- HUD Mobile: botões movíveis -->
 <div id="mobileControls">
-  <button id="leftBtn">⬅️</button>
-  <button id="rightBtn">➡️</button>
+  <button class="hudBtn" id="hudLeft">⬅️</button>
+  <button class="hudBtn" id="hudRight">➡️</button>
 </div>
 
-<!-- Botão Restart e Menu Inicial no Game Over -->
-<button id="restartBtn">🔄 Reiniciar</button>
-<button id="menuRestartBtn">🏠 Menu Inicial</button>
+<!-- Game Over controls -->
+<button id="restartBtn" class="bigBtn" style="display:none">🔄 Reiniciar</button>
+<button id="backToMenuBtn" class="bigBtn" style="display:none">🏠 Voltar ao Menu</button>
 
 <script src="script.js"></script>
 </body>
